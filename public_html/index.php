@@ -81,11 +81,11 @@ $ipVersion = $ipService->getIpVersion($userIp);
         <h2>Testes de Conectividade</h2>
         <div class="ping-container">
             <div class="ping-box">
-                <h3>Seu Dispositivo - UFABC</h3>
+                <h3>Seu Dispositivo <i class="fa-solid fa-arrows-left-right-to-line"></i> UFABC</h3>
                 <div id="pingResultInternal"></div>
             </div>
             <div class="ping-box">
-                <h3>UFABC - Internet</h3>
+                <h3>UFABC <i class="fa-solid fa-arrows-left-right-to-line"></i> Internet</h3>
                 <div id="pingResultExternal"></div>
             </div>
         </div>
