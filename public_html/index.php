@@ -62,12 +62,21 @@ $ipVersion = $ipService->getIpVersion($userIp);
             startTests();
         };
     </script>
+    <style>
+        .ip-box {
+            display: inline-block;
+            background-color: #e6e6e6;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Meu IP / Minha Vida</h1>
-        <p><?php echo $ipVersion; ?>: <?php echo $userIp; ?> 
-            <i class="fas fa-copy" title="Copiar IP" style="cursor: pointer;" onclick="copyToClipboard('<?php echo $userIp; ?>')"></i>
+        <p><?php echo $ipVersion; ?>: <span class="ip-box"><?php echo $userIp; ?></span>
+            <i class="fa-regular fa-copy" title="Copiar IP" style="cursor: pointer;" onclick="copyToClipboard('<?php echo $userIp; ?>')"></i>
         </p>
         <h2>Testes de Conectividade</h2>
         <div class="ping-container">
