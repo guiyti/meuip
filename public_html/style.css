@@ -49,7 +49,7 @@ p {
 
 .ping-box div {
     text-align: center; /* Centraliza o texto */
-    white-space: pre-wrap;
+    white-space: nowrap; /* Evita a quebra de linha */
     font-family: monospace;
 }
 
