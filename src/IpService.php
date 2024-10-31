@@ -14,5 +14,19 @@ class IpService {
             return 'Unknown';
         }
     }
+
+    public function testConnectivity($host) {
+        $pingResult = shell_exec("ping -c 1 $host");
+        if (strpos($pingResult, '1 received') !== false) {
+            return "Conectividade com $host: OK";
+        } else {
+            return "Conectividade com $host: Falhou";
+        }
+    }
+
+    public function pingHost($host) {
+        $pingResult = shell_exec("ping -c 5 $host");
+        return nl2br($pingResult);
+    }
 }
 ?>

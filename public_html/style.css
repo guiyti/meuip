@@ -25,3 +25,30 @@ p {
     display: inline-block;
     margin-top: 20px;
 }
+
+.ping-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+.ping-box {
+    background-color: #e6e6e6;
+    padding: 15px;
+    border-radius: 10px;
+    width: 45%;
+    min-width: 300px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.ping-box h3 {
+    color: #006633; /* Verde UFABC */
+    margin-bottom: 10px;
+}
+
+.ping-box div {
+    text-align: left;
+    white-space: pre-wrap;
+    font-family: monospace;
+}
