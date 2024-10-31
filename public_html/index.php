@@ -13,6 +13,7 @@ $ipVersion = $ipService->getIpVersion($userIp);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu IP / Minha Vida</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
         function pingHost(host, elementId) {
             console.log(host);
@@ -44,6 +45,13 @@ $ipVersion = $ipService->getIpVersion($userIp);
             }, 1000);
         }
 
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('IP copiado para a área de transferência');
+            }, function(err) {
+                console.error('Erro ao copiar IP: ', err);
+            });
+        }
 
         function startTests() {
             pingHost('<?php echo $userIp; ?>', 'pingResultInternal');
@@ -58,7 +66,9 @@ $ipVersion = $ipService->getIpVersion($userIp);
 <body>
     <div class="container">
         <h1>Meu IP / Minha Vida</h1>
-        <p><?php echo $ipVersion; ?>: <?php echo $userIp; ?></p>
+        <p><?php echo $ipVersion; ?>: <?php echo $userIp; ?> 
+            <i class="fas fa-copy" title="Copiar IP" style="cursor: pointer;" onclick="copyToClipboard('<?php echo $userIp; ?>')"></i>
+        </p>
         <h2>Testes de Conectividade</h2>
         <div class="ping-container">
             <div class="ping-box">
