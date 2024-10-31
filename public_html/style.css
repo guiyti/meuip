@@ -2,12 +2,26 @@ body {
     font-family: Arial, sans-serif;
     text-align: center;
     margin-top: 50px;
-}
-
-h1 {
+    background-color: #f4f4f4;
     color: #333;
 }
 
+h1 {
+    color: #006633; /* Verde UFABC */
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
 p {
-    font-size: 1.2em;
+    font-size: 1.5em;
+    color: #003366; /* Azul UFABC */
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    margin-top: 20px;
 }

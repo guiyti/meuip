@@ -15,7 +15,9 @@ $ipVersion = $ipService->getIpVersion($userIp);
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Seu IP</h1>
-    <p>Seu <?php echo $ipVersion; ?> é: <?php echo $userIp; ?></p>
+    <div class="container">
+        <h1>Seu IP</h1>
+        <p>Seu <?php echo $ipVersion; ?> é: <?php echo $userIp; ?></p>
+    </div>
 </body>
 </html>
