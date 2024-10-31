@@ -52,3 +52,13 @@ p {
     white-space: pre-wrap;
     font-family: monospace;
 }
+
+.blinking {
+    animation: blinkingText 1.2s infinite;
+}
+
+@keyframes blinkingText {
+    0% { color: #006633; }
+    50% { color: transparent; }
+    100% { color: #006633; }
+}

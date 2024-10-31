@@ -26,6 +26,8 @@ $ipVersion = $ipService->getIpVersion($userIp);
         }
 
         function startPing() {
+            document.getElementById('pingResultUfabc').innerHTML = '<span class="blinking">Aguarde... realizando testes</span>';
+            document.getElementById('pingResultGoogle').innerHTML = '<span class="blinking">Aguarde... realizando testes</span>';
             pingHost('172.17.3.69', 'pingResultUfabc');
             pingHost('8.8.8.8', 'pingResultGoogle');
         }
@@ -43,11 +45,11 @@ $ipVersion = $ipService->getIpVersion($userIp);
         <div class="ping-container">
             <div class="ping-box">
                 <h3>Ping para www.ufabc.edu.br</h3>
-                <div id="pingResultUfabc">Realizando teste de conectividade...</div>
+                <div id="pingResultUfabc"></div>
             </div>
             <div class="ping-box">
                 <h3>Ping para 8.8.8.8</h3>
-                <div id="pingResultGoogle">Realizando teste de conectividade...</div>
+                <div id="pingResultGoogle"></div>
             </div>
         </div>
     </div>
