@@ -48,7 +48,7 @@ p {
 }
 
 .ping-box div {
-    text-align: left;
+    text-align: center; /* Centraliza o texto */
     white-space: pre-wrap;
     font-family: monospace;
 }

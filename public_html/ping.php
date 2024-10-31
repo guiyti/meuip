@@ -1,15 +1,12 @@
 <?php
-require_once '../src/IpService.php';
-
 if (isset($_GET['host'])) {
-    $ipService = new IpService();
-    $host = $_GET['host'];
-    $pingResult = shell_exec("ping -c 5 $host");
+    $host = escapeshellarg($_GET['host']);
+    $pingResult = shell_exec("ping -c 1 $host");
 
-    if (strpos($pingResult, '0 received') !== false) {
-        echo "Conectividade com $host: Falhou";
+    if (strpos($pingResult, '1 received') !== false || strpos($pingResult, '1 packets received') !== false) {
+        echo "Conectividade externa: OK";
     } else {
-        echo "Conectividade com $host: OK";
+        echo "Conectividade externa: Falhou";
     }
 }
 ?>

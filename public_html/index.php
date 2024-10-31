@@ -32,8 +32,39 @@ $ipVersion = $ipService->getIpVersion($userIp);
             pingHost('8.8.8.8', 'pingResultGoogle');
         }
 
+        function testInternalConnectivity() {
+            document.getElementById('pingResultInternal').innerHTML = '<span class="blinking">Aguarde... realizando teste de conectividade interna</span>';
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'test_internal.php', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    document.getElementById('pingResultInternal').innerHTML = 'Conectividade interna: OK';
+                } else if (xhr.readyState == 4) {
+                    document.getElementById('pingResultInternal').innerHTML = 'Conectividade interna: Falhou';
+                }
+            };
+            xhr.send();
+        }
+
+        function testExternalConnectivity() {
+            document.getElementById('pingResultExternal').innerHTML = '<span class="blinking">Aguarde... realizando teste de conectividade externa</span>';
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'ping.php?host=8.8.8.8', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    document.getElementById('pingResultExternal').innerHTML = xhr.responseText;
+                }
+            };
+            xhr.send();
+        }
+
+        function startTests() {
+            testInternalConnectivity();
+            testExternalConnectivity();
+        }
+
         window.onload = function() {
-            startPing();
+            startTests();
         };
     </script>
 </head>
@@ -44,12 +75,12 @@ $ipVersion = $ipService->getIpVersion($userIp);
         <h2>Testes de Conectividade</h2>
         <div class="ping-container">
             <div class="ping-box">
-                <h3>Ping para www.ufabc.edu.br</h3>
-                <div id="pingResultUfabc"></div>
+                <h3>Seu dispositivo e a rede da UFABC</h3>
+                <div id="pingResultInternal"></div>
             </div>
             <div class="ping-box">
-                <h3>Ping para 8.8.8.8</h3>
-                <div id="pingResultGoogle"></div>
+                <h3>UFABC e a Internet</h3>
+                <div id="pingResultExternal"></div>
             </div>
         </div>
     </div>
