@@ -11,56 +11,43 @@ $ipVersion = $ipService->getIpVersion($userIp);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu IP</title>
+    <title>Meu IP / Minha Vida</title>
     <link rel="stylesheet" href="style.css">
     <script>
         function pingHost(host, elementId) {
+            console.log(host);
+            document.getElementById(elementId).innerHTML = '<span class="blinking">Aguarde... realizando testes</span>';
             const xhr = new XMLHttpRequest();
             xhr.open('GET', 'ping.php?host=' + host, true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == 4 && xhr.status == 200) {
-                    document.getElementById(elementId).innerHTML = xhr.responseText;
+                    const times = JSON.parse(xhr.responseText);
+                    displayPingTimes(times, elementId);
                 }
             };
             xhr.send();
         }
 
-        function startPing() {
-            document.getElementById('pingResultUfabc').innerHTML = '<span class="blinking">Aguarde... realizando testes</span>';
-            document.getElementById('pingResultGoogle').innerHTML = '<span class="blinking">Aguarde... realizando testes</span>';
-            pingHost('172.17.3.69', 'pingResultUfabc');
-            pingHost('8.8.8.8', 'pingResultGoogle');
+        function displayPingTimes(times, elementId) {
+            let index = 0;
+            const resultElement = document.getElementById(elementId);
+            resultElement.innerHTML = ''; // Limpa o conteúdo anterior
+            const interval = setInterval(function() {
+                if (index < times.length) {
+                    const time = times[index];
+                    resultElement.innerHTML += 'Ping ' + (index + 1) + ': ' + time + ' ms<br>';
+                    index++;
+                } else {
+                    clearInterval(interval);
+                    resultElement.innerHTML += '<br>Testes OK';
+                }
+            }, 1000);
         }
 
-        function testInternalConnectivity() {
-            document.getElementById('pingResultInternal').innerHTML = '<span class="blinking">Aguarde... realizando teste de conectividade interna</span>';
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'test_internal.php', true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    document.getElementById('pingResultInternal').innerHTML = 'Conectividade interna: OK';
-                } else if (xhr.readyState == 4) {
-                    document.getElementById('pingResultInternal').innerHTML = 'Conectividade interna: Falhou';
-                }
-            };
-            xhr.send();
-        }
-
-        function testExternalConnectivity() {
-            document.getElementById('pingResultExternal').innerHTML = '<span class="blinking">Aguarde... realizando teste de conectividade externa</span>';
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'ping.php?host=8.8.8.8', true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    document.getElementById('pingResultExternal').innerHTML = xhr.responseText;
-                }
-            };
-            xhr.send();
-        }
 
         function startTests() {
-            testInternalConnectivity();
-            testExternalConnectivity();
+            pingHost('<?php echo $userIp; ?>', 'pingResultInternal');
+            pingHost('8.8.8.8', 'pingResultExternal');
         }
 
         window.onload = function() {
@@ -70,16 +57,16 @@ $ipVersion = $ipService->getIpVersion($userIp);
 </head>
 <body>
     <div class="container">
-        <h1>Seu IP</h1>
-        <p>Seu <?php echo $ipVersion; ?> é: <?php echo $userIp; ?></p>
+        <h1>Meu IP / Minha Vida</h1>
+        <p><?php echo $ipVersion; ?>: <?php echo $userIp; ?></p>
         <h2>Testes de Conectividade</h2>
         <div class="ping-container">
             <div class="ping-box">
-                <h3>Seu dispositivo e a rede da UFABC</h3>
+                <h3>Seu Dispositivo - UFABC</h3>
                 <div id="pingResultInternal"></div>
             </div>
             <div class="ping-box">
-                <h3>UFABC e a Internet</h3>
+                <h3>UFABC - Internet</h3>
                 <div id="pingResultExternal"></div>
             </div>
         </div>
