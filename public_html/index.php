@@ -52,7 +52,6 @@ $ipVersion = $ipService->getIpVersion($userIp);
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-            alert('IP copiado para a área de transferência');
         }
 
         function startTests() {
