@@ -46,11 +46,13 @@ $ipVersion = $ipService->getIpVersion($userIp);
         }
 
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                alert('IP copiado para a área de transferência');
-            }, function(err) {
-                console.error('Erro ao copiar IP: ', err);
-            });
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alert('IP copiado para a área de transferência');
         }
 
         function startTests() {
