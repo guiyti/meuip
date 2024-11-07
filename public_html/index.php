@@ -2,8 +2,7 @@
 require_once '../src/IpService.php';
 
 $ipService = new IpService();
-$userIp = $ipService->getUserIp();
-$ipVersion = $ipService->getIpVersion($userIp);
+$userIps = $ipService->getUserIps();
 ?>
 
 <!DOCTYPE html>
@@ -55,7 +54,7 @@ $ipVersion = $ipService->getIpVersion($userIp);
         }
 
         function startTests() {
-            pingHost('<?php echo $userIp; ?>', 'pingResultInternal');
+            pingHost('<?php echo $userIps[0]; ?>', 'pingResultInternal');
             pingHost('8.8.8.8', 'pingResultExternal');
         }
 
@@ -76,9 +75,11 @@ $ipVersion = $ipService->getIpVersion($userIp);
 <body>
     <div class="container">
         <h1>Meu IP / Minha Vida</h1>
-        <p><?php echo $ipVersion; ?>: <span class="ip-box"><?php echo $userIp; ?></span>
-            <i class="fa-regular fa-copy" title="Copiar IP" style="cursor: pointer;" onclick="copyToClipboard('<?php echo $userIp; ?>')"></i>
-        </p>
+        <?php foreach ($userIps as $ip): ?>
+            <p><?php echo $ipService->getIpVersion($ip); ?>: <span class="ip-box"><?php echo $ip; ?></span>
+                <i class="fa-regular fa-copy" title="Copiar IP" style="cursor: pointer;" onclick="copyToClipboard('<?php echo $ip; ?>')"></i>
+            </p>
+        <?php endforeach; ?>
         <h2>Testes de Conectividade</h2>
         <div class="ping-container">
             <div class="ping-box">
