@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { FilePdf, Download } from "lucide-react";
+import { FileText, Download } from "lucide-react";
 
 interface ReportFormProps {
   testId: string;
@@ -107,7 +106,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
                   </span>
                 ) : (
                   <span className="flex items-center">
-                    <FilePdf className="mr-2 h-4 w-4" />
+                    <FileText className="mr-2 h-4 w-4" />
                     Exportar PDF
                   </span>
                 )}
