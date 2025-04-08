@@ -10,6 +10,7 @@ import NetworkInfo from "@/components/NetworkInfo";
 import TestProgress from "@/components/TestProgress";
 import ResultsSummary from "@/components/ResultsSummary";
 import ReportForm from "@/components/ReportForm";
+import { supabase } from "@/integrations/supabase/client";
 
 const Diagnostic = () => {
   const navigate = useNavigate();
@@ -100,46 +101,10 @@ const Diagnostic = () => {
         });
         
         setStage("complete");
-        
-        // Store the test results in Supabase
-        // In a real implementation, we would use Supabase client to save data
-        saveToSupabase();
       }
     }, 800);
   };
   
-  const saveToSupabase = async () => {
-    try {
-      // In a real implementation with Supabase connected, we would use:
-      // const { error } = await supabase.from('diagnostic_tests').insert({
-      //   user_name: userData.fullName,
-      //   campus: userData.campus,
-      //   building: userData.building,
-      //   floor: userData.floor,
-      //   room: userData.room,
-      //   ip_v4: networkInfo.ipv4,
-      //   ip_v6: networkInfo.ipv6,
-      //   download_speed: testResults.downloadSpeed,
-      //   upload_speed: testResults.uploadSpeed,
-      //   latency: testResults.latency,
-      //   test_id: testResults.testId,
-      //   test_data: speedData,
-      //   created_at: new Date(),
-      // });
-      
-      console.log("Data would be saved to Supabase:", {
-        user_data: userData,
-        network_info: networkInfo,
-        test_results: testResults,
-        speed_data: speedData
-      });
-      
-    } catch (error) {
-      console.error("Error saving to Supabase:", error);
-      toast.error("Erro ao salvar resultados no banco de dados");
-    }
-  };
-
   const restartTest = () => {
     setStage("loading");
     setTestProgress(0);

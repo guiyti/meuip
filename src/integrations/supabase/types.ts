@@ -217,6 +217,63 @@ export type Database = {
         }
         Relationships: []
       }
+      network_tests: {
+        Row: {
+          building: string
+          campus: string
+          created_at: string
+          download_speed: number | null
+          email: string
+          floor: string
+          id: string
+          ipv4: string | null
+          ipv6: string | null
+          latency: number | null
+          notes: string | null
+          room: string
+          speed_data: Json | null
+          test_id: string
+          ticket_number: string | null
+          upload_speed: number | null
+        }
+        Insert: {
+          building: string
+          campus: string
+          created_at?: string
+          download_speed?: number | null
+          email: string
+          floor: string
+          id?: string
+          ipv4?: string | null
+          ipv6?: string | null
+          latency?: number | null
+          notes?: string | null
+          room: string
+          speed_data?: Json | null
+          test_id: string
+          ticket_number?: string | null
+          upload_speed?: number | null
+        }
+        Update: {
+          building?: string
+          campus?: string
+          created_at?: string
+          download_speed?: number | null
+          email?: string
+          floor?: string
+          id?: string
+          ipv4?: string | null
+          ipv6?: string | null
+          latency?: number | null
+          notes?: string | null
+          room?: string
+          speed_data?: Json | null
+          test_id?: string
+          ticket_number?: string | null
+          upload_speed?: number | null
+        }
+        Relationships: []
+      }
       otp_verification: {
         Row: {
           created_at: string

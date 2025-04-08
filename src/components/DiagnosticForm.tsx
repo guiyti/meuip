@@ -12,7 +12,7 @@ import { toast } from "sonner";
 const DiagnosticForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: "",
+    email: "",
     campus: "",
     building: "",
     floor: "",
@@ -34,8 +34,15 @@ const DiagnosticForm = () => {
     setIsSubmitting(true);
 
     // Validate form
-    if (!formData.fullName || !formData.campus || !formData.building || !formData.floor || !formData.room) {
+    if (!formData.email || !formData.campus || !formData.building || !formData.floor || !formData.room) {
       toast.error("Por favor, preencha todos os campos obrigatórios.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate email format (must end with @ufabc.edu.br)
+    if (!formData.email.endsWith('@ufabc.edu.br')) {
+      toast.error("Por favor, use um email institucional (@ufabc.edu.br)");
       setIsSubmitting(false);
       return;
     }
@@ -56,15 +63,19 @@ const DiagnosticForm = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="fullName">Nome Completo</Label>
+        <Label htmlFor="email">Email Institucional</Label>
         <Input 
-          id="fullName" 
-          name="fullName" 
-          placeholder="Digite seu nome completo" 
-          value={formData.fullName} 
+          id="email" 
+          name="email" 
+          type="email"
+          placeholder="seu.email@ufabc.edu.br" 
+          value={formData.email} 
           onChange={handleChange}
           required
         />
+        <p className="text-xs text-slate-500">
+          Utilize seu email institucional com domínio @ufabc.edu.br
+        </p>
       </div>
 
       <Alert className="bg-blue-50 border-blue-200">

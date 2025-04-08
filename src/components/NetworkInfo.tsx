@@ -9,7 +9,7 @@ interface NetworkInfoProps {
     ipv6: string;
   };
   userData: {
-    fullName: string;
+    email: string;
     campus: string;
     building: string;
     floor: string;
@@ -32,7 +32,7 @@ const NetworkInfo: React.FC<NetworkInfoProps> = ({ networkInfo, userData }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h4 className="text-sm font-medium text-slate-500 mb-1">Usuário</h4>
-              <p className="font-medium">{userData.fullName}</p>
+              <p className="font-medium">{userData.email}</p>
               
               <h4 className="text-sm font-medium text-slate-500 mb-1 mt-3">Localização</h4>
               <p className="font-medium">
