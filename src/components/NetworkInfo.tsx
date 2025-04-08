@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 
 interface NetworkInfoProps {
   networkInfo: {
@@ -45,7 +44,7 @@ const NetworkInfo: React.FC<NetworkInfoProps> = ({ networkInfo, userData }) => {
               <p className="font-medium font-mono">{networkInfo.ipv4}</p>
               
               <h4 className="text-sm font-medium text-slate-500 mb-1 mt-3">Endereço IPv6</h4>
-              <p className="font-medium font-mono text-sm break-all">{networkInfo.ipv6}</p>
+              <p className="font-medium font-mono">{networkInfo.ipv6}</p>
             </div>
           </div>
         </CardContent>

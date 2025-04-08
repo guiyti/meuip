@@ -3,13 +3,21 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { FileText } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose
+} from "@/components/ui/dialog";
 
 interface ReportFormProps {
   testId: string;
@@ -27,38 +35,8 @@ const ReportForm: React.FC<ReportFormProps> = ({
   speedData 
 }) => {
   const [ticketNumber, setTicketNumber] = useState("");
-  const [notes, setNotes] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-
-  const saveTestResults = async () => {
-    try {
-      // Using a more generic approach to avoid TypeScript issues with the table not in the types
-      const { error } = await supabase
-        .from('network_tests' as any)
-        .insert({
-          email: userData.email,
-          campus: userData.campus,
-          building: userData.building,
-          floor: userData.floor,
-          room: userData.room,
-          ipv4: networkInfo.ipv4,
-          ipv6: networkInfo.ipv6,
-          download_speed: testResults.downloadSpeed,
-          upload_speed: testResults.uploadSpeed,
-          latency: testResults.latency,
-          test_id: testId,
-          ticket_number: ticketNumber || null,
-          notes: notes || null,
-          speed_data: speedData,
-        } as any);
-
-      if (error) throw error;
-      toast.success("Os resultados do teste foram salvos com sucesso!");
-    } catch (error) {
-      console.error("Erro ao salvar resultados:", error);
-      toast.error("Erro ao salvar os resultados. Tente novamente.");
-    }
-  };
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const generatePDF = () => {
     setIsGenerating(true);
@@ -109,20 +87,12 @@ const ReportForm: React.FC<ReportFormProps> = ({
       doc.text(`Latência: ${testResults.latency} ms`, 20, 124);
       
       // Informações do chamado
-      if (ticketNumber || notes) {
+      if (ticketNumber) {
         doc.setFontSize(16);
         doc.text("Informações do Chamado", 20, 134);
         
         doc.setFontSize(12);
-        if (ticketNumber) {
-          doc.text(`Número do Chamado: ${ticketNumber}`, 20, 142);
-        }
-        
-        if (notes) {
-          const splitNotes = doc.splitTextToSize(notes, 170);
-          doc.text("Observações:", 20, ticketNumber ? 150 : 142);
-          doc.text(splitNotes, 20, ticketNumber ? 158 : 150);
-        }
+        doc.text(`Número do Chamado: ${ticketNumber}`, 20, 142);
       }
       
       // Salvar o PDF
@@ -134,23 +104,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
       toast.error("Erro ao gerar o relatório PDF.");
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const handleExportPDF = async () => {
-    setIsGenerating(true);
-
-    try {
-      // Primeiro, salvar os resultados no banco de dados
-      await saveTestResults();
-      
-      // Depois, gerar o PDF
-      generatePDF();
-    } catch (error) {
-      console.error("Erro:", error);
-      toast.error("Ocorreu um erro. Tente novamente.");
-    } finally {
-      setIsGenerating(false);
+      setDialogOpen(false);
     }
   };
 
@@ -158,67 +112,74 @@ const ReportForm: React.FC<ReportFormProps> = ({
     <div className="mt-8 border-t pt-6">
       <h3 className="text-lg font-medium mb-4">Informações do Chamado</h3>
       
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="ticketNumber">Número do Chamado (Opcional)</Label>
-          <div className="flex items-center mt-1">
-            <span className="bg-slate-100 px-3 py-2 rounded-l-md border border-r-0 border-slate-300 text-slate-500">
-              #
-            </span>
-            <Input
-              id="ticketNumber"
-              placeholder="Digite o código do chamado aberto em servicos.ufabc.edu.br"
-              value={ticketNumber}
-              onChange={(e) => setTicketNumber(e.target.value)}
-              className="rounded-l-none"
-            />
-          </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Se já abriu um chamado relacionado a este problema, informe o código para referência.
-          </p>
-        </div>
-        
-        <div>
-          <Label htmlFor="notes">Observações Adicionais (Opcional)</Label>
-          <Textarea
-            id="notes"
-            placeholder="Descreva qualquer detalhe adicional sobre o problema de rede..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-          />
-        </div>
-        
-        <Card className="border-slate-200 bg-slate-50">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h4 className="font-medium mb-1">Exportar Relatório Completo</h4>
-                <p className="text-sm text-slate-500">
-                  Gere um PDF com todos os dados do diagnóstico para compartilhar com o NTI.
-                </p>
-              </div>
-              <Button 
-                onClick={handleExportPDF} 
-                disabled={isGenerating}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {isGenerating ? (
-                  <span className="flex items-center">
-                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                    Gerando...
-                  </span>
-                ) : (
+      <Card className="border-slate-200 bg-slate-50">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h4 className="font-medium mb-1">Exportar Relatório Completo</h4>
+              <p className="text-sm text-slate-500">
+                Gere um PDF com todos os dados do diagnóstico para compartilhar com o NTI.
+              </p>
+            </div>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
                   <span className="flex items-center">
                     <FileText className="mr-2 h-4 w-4" />
                     Exportar PDF
                   </span>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Número do Chamado</DialogTitle>
+                  <DialogDescription>
+                    Digite o número do chamado aberto em servicos.ufabc.edu.br para incluir no relatório.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="flex items-center">
+                    <Label htmlFor="ticketNumber" className="w-24">Chamado #</Label>
+                    <div className="flex items-center flex-1">
+                      <span className="bg-slate-100 px-3 py-2 rounded-l-md border border-r-0 border-slate-300 text-slate-500">
+                        #
+                      </span>
+                      <Input
+                        id="ticketNumber"
+                        placeholder="Digite o código do chamado"
+                        value={ticketNumber}
+                        onChange={(e) => setTicketNumber(e.target.value)}
+                        className="rounded-l-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button 
+                    onClick={generatePDF} 
+                    disabled={isGenerating}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isGenerating ? (
+                      <span className="flex items-center">
+                        <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                        Gerando...
+                      </span>
+                    ) : (
+                      <span className="flex items-center">
+                        <FileText className="mr-2 h-4 w-4" />
+                        Gerar PDF
+                      </span>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

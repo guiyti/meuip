@@ -10,7 +10,6 @@ import NetworkInfo from "@/components/NetworkInfo";
 import TestProgress from "@/components/TestProgress";
 import ResultsSummary from "@/components/ResultsSummary";
 import ReportForm from "@/components/ReportForm";
-import { supabase } from "@/integrations/supabase/client";
 
 const Diagnostic = () => {
   const navigate = useNavigate();
@@ -74,8 +73,12 @@ const Diagnostic = () => {
       const uploadValue = 10 + Math.random() * 40;
       const latencyValue = 5 + Math.random() * 25;
       
+      // Format timestamp for x-axis
+      const timestamp = new Date();
+      const timeLabel = `${timestamp.getHours().toString().padStart(2, '0')}:${timestamp.getMinutes().toString().padStart(2, '0')}:${timestamp.getSeconds().toString().padStart(2, '0')}`;
+      
       testData.push({
-        name: `Ponto ${testData.length + 1}`,
+        name: timeLabel,
         download: downloadValue.toFixed(2),
         upload: uploadValue.toFixed(2),
         latency: latencyValue.toFixed(2),
@@ -160,7 +163,11 @@ const Diagnostic = () => {
                           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
+                          <XAxis 
+                            dataKey="name"
+                            label={{ value: 'Tempo', position: 'insideBottomRight', offset: -5 }}
+                            tick={{ fontSize: 10 }}
+                          />
                           <YAxis />
                           <Tooltip />
                           <Legend />
