@@ -5,9 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { FileText, Download } from "lucide-react";
+import { FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
@@ -33,22 +32,25 @@ const ReportForm: React.FC<ReportFormProps> = ({
 
   const saveTestResults = async () => {
     try {
-      const { error } = await supabase.from('network_tests').insert({
-        email: userData.email,
-        campus: userData.campus,
-        building: userData.building,
-        floor: userData.floor,
-        room: userData.room,
-        ipv4: networkInfo.ipv4,
-        ipv6: networkInfo.ipv6,
-        download_speed: testResults.downloadSpeed,
-        upload_speed: testResults.uploadSpeed,
-        latency: testResults.latency,
-        test_id: testId,
-        ticket_number: ticketNumber || null,
-        notes: notes || null,
-        speed_data: speedData,
-      });
+      // Using a more generic approach to avoid TypeScript issues with the table not in the types
+      const { error } = await supabase
+        .from('network_tests' as any)
+        .insert({
+          email: userData.email,
+          campus: userData.campus,
+          building: userData.building,
+          floor: userData.floor,
+          room: userData.room,
+          ipv4: networkInfo.ipv4,
+          ipv6: networkInfo.ipv6,
+          download_speed: testResults.downloadSpeed,
+          upload_speed: testResults.uploadSpeed,
+          latency: testResults.latency,
+          test_id: testId,
+          ticket_number: ticketNumber || null,
+          notes: notes || null,
+          speed_data: speedData,
+        } as any);
 
       if (error) throw error;
       toast.success("Os resultados do teste foram salvos com sucesso!");
