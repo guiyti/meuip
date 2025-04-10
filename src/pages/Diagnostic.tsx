@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import NetworkInfo from "@/components/NetworkInfo";
 import TestProgress from "@/components/TestProgress";
 import ResultsSummary from "@/components/ResultsSummary";
 import ReportForm from "@/components/ReportForm";
+import { Badge } from "@/components/ui/badge";
 
 const Diagnostic = () => {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ const Diagnostic = () => {
   const [networkInfo, setNetworkInfo] = useState({
     ipv4: "",
     ipv6: "",
+    isVPN: false,
   });
   const [testProgress, setTestProgress] = useState(0);
   const [speedData, setSpeedData] = useState<any[]>([]);
@@ -30,7 +31,6 @@ const Diagnostic = () => {
   });
 
   useEffect(() => {
-    // Load user data from session storage
     const storedData = sessionStorage.getItem("diagnosticUserData");
     if (!storedData) {
       toast.error("Dados não encontrados. Por favor, preencha o formulário novamente.");
@@ -43,19 +43,71 @@ const Diagnostic = () => {
 
   const getNetworkInfo = async () => {
     try {
-      // In a real implementation, we would use an actual service to get IP addresses
-      // Simulating API call to get IP addresses
-      setTimeout(() => {
-        setNetworkInfo({
-          ipv4: "192.168.1." + Math.floor(Math.random() * 255),
-          ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:733" + Math.floor(Math.random() * 10),
-        });
-        setStage("testing");
-        startSpeedTest();
-      }, 1500);
+      // Obter IP local usando window.location
+      const getLocalIP = (): string => {
+        // Tentar obter o IP local do hostname
+        const hostname = window.location.hostname;
+        
+        // Se o hostname for localhost, tentar obter o IP de outra forma
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          // Em ambiente de desenvolvimento, usar um IP padrão
+          return '192.168.1.1';
+        }
+        
+        return hostname;
+      };
+
+      // Obter IP local
+      const localIP = getLocalIP();
+      
+      // Obter IP público para verificação de VPN
+      const publicIPResponse = await fetch('https://api.ipify.org?format=json');
+      const publicIPData = await publicIPResponse.json();
+      
+      // Verificar se está usando VPN
+      const isVPN = await checkIfVPN(publicIPData.ip);
+      
+      setNetworkInfo({
+        ipv4: localIP,
+        ipv6: "Não detectado",
+        isVPN: isVPN,
+      });
+      
+      setStage("testing");
+      startSpeedTest();
     } catch (error) {
       console.error("Error getting network info:", error);
       toast.error("Erro ao obter informações de rede");
+      // Em caso de erro, continuar com o teste mesmo assim
+      setStage("testing");
+      startSpeedTest();
+    }
+  };
+
+  const checkIfVPN = async (ip: string) => {
+    try {
+      // Usar serviço de verificação de VPN
+      const response = await fetch(`https://ipapi.co/${ip}/json/`);
+      const data = await response.json();
+      
+      // Lista mais completa de provedores de VPN conhecidos
+      const vpnProviders = [
+        'vpn', 'proxy', 'tunnel', 'private', 'expressvpn', 'nordvpn', 
+        'surfshark', 'cyberghost', 'private internet access', 'ipvanish',
+        'vyprvpn', 'protonvpn', 'windscribe', 'tunnelbear', 'hide.me',
+        'mullvad', 'perfect privacy', 'airvpn', 'ivpn', 'trust.zone'
+      ];
+      
+      // Verificar se o IP pertence a um provedor de VPN conhecido
+      const org = data.org?.toLowerCase() || '';
+      const asn = data.asn?.toLowerCase() || '';
+      
+      return vpnProviders.some(provider => 
+        org.includes(provider) || asn.includes(provider)
+      );
+    } catch (error) {
+      console.error("Error checking VPN status:", error);
+      return false;
     }
   };
 
@@ -123,24 +175,34 @@ const Diagnostic = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-white to-[rgb(7,98,39)] py-8">
       <div className="container mx-auto px-4">
-        <Card className="max-w-4xl mx-auto mb-8">
-          <CardHeader className="border-b">
-            <CardTitle className="flex justify-between items-center">
+        <Card className="max-w-4xl mx-auto mb-8 bg-[rgb(0,66,13)] border-[rgb(255,210,0)]">
+          <CardHeader className="border-b border-[rgb(255,210,0)]">
+            <CardTitle className="flex justify-between items-center text-white">
               <span>Diagnóstico de Rede</span>
               {stage === "complete" && (
-                <span className="text-sm font-normal bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
                   Concluído
-                </span>
+                </Badge>
+              )}
+              {networkInfo.isVPN && (
+                <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+                  Conexão VPN
+                </Badge>
+              )}
+              {!networkInfo.isVPN && networkInfo.ipv4 && (
+                <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                  Conexão Direta
+                </Badge>
               )}
             </CardTitle>
           </CardHeader>
           
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 text-white">
             {stage === "loading" && (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[rgb(255,210,0)] mx-auto mb-4"></div>
                 <p>Coletando informações de rede...</p>
               </div>
             )}
@@ -162,14 +224,20 @@ const Diagnostic = () => {
                           data={speedData}
                           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                         >
-                          <CartesianGrid strokeDasharray="3 3" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
                           <XAxis 
                             dataKey="name"
                             label={{ value: 'Tempo', position: 'insideBottomRight', offset: -5 }}
-                            tick={{ fontSize: 10 }}
+                            tick={{ fontSize: 10, fill: '#ffffff' }}
                           />
-                          <YAxis />
-                          <Tooltip />
+                          <YAxis tick={{ fill: '#ffffff' }} />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'rgba(0, 66, 13, 0.9)',
+                              borderColor: 'rgb(255, 210, 0)',
+                              color: '#ffffff'
+                            }}
+                          />
                           <Legend />
                           <Line type="monotone" dataKey="download" stroke="#3b82f6" name="Download (Mbps)" activeDot={{ r: 8 }} />
                           <Line type="monotone" dataKey="upload" stroke="#10b981" name="Upload (Mbps)" />
@@ -195,14 +263,14 @@ const Diagnostic = () => {
                       <Button 
                         onClick={restartTest} 
                         variant="outline" 
-                        className="mx-2"
+                        className="mx-2 border-[rgb(255,210,0)] text-[rgb(255,210,0)] hover:bg-[rgb(255,210,0)] hover:text-[rgb(0,66,13)]"
                       >
                         Reiniciar Diagnóstico
                       </Button>
                       <Button 
                         onClick={() => navigate("/")} 
                         variant="outline" 
-                        className="mx-2"
+                        className="mx-2 border-[rgb(255,210,0)] text-[rgb(255,210,0)] hover:bg-[rgb(255,210,0)] hover:text-[rgb(0,66,13)]"
                       >
                         Voltar ao Início
                       </Button>

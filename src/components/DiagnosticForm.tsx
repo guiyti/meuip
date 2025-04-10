@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,19 +13,31 @@ const DiagnosticForm = () => {
   const [formData, setFormData] = useState({
     email: "",
     campus: "",
-    building: "",
-    floor: "",
-    room: ""
+    location: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Carregar dados salvos do localStorage
+  useEffect(() => {
+    const savedData = localStorage.getItem("diagnosticFormData");
+    if (savedData) {
+      setFormData(JSON.parse(savedData));
+    }
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const newData = { ...formData, [name]: value };
+    setFormData(newData);
+    // Salvar no localStorage
+    localStorage.setItem("diagnosticFormData", JSON.stringify(newData));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const newData = { ...formData, [name]: value };
+    setFormData(newData);
+    // Salvar no localStorage
+    localStorage.setItem("diagnosticFormData", JSON.stringify(newData));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +45,7 @@ const DiagnosticForm = () => {
     setIsSubmitting(true);
 
     // Validate form
-    if (!formData.email || !formData.campus || !formData.building || !formData.floor || !formData.room) {
+    if (!formData.email || !formData.campus || !formData.location) {
       toast.error("Por favor, preencha todos os campos obrigatórios.");
       setIsSubmitting(false);
       return;
@@ -63,7 +74,7 @@ const DiagnosticForm = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="email">Email Institucional</Label>
+        <Label htmlFor="email" className="text-white">Email Institucional</Label>
         <Input 
           id="email" 
           name="email" 
@@ -72,27 +83,28 @@ const DiagnosticForm = () => {
           value={formData.email} 
           onChange={handleChange}
           required
+          className="bg-white/10 border-[rgb(255,210,0)] text-white placeholder:text-white/50"
         />
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-white/70">
           Utilize seu email institucional com domínio @ufabc.edu.br
         </p>
       </div>
 
-      <Alert className="bg-blue-50 border-blue-200">
-        <InfoIcon className="h-4 w-4 text-blue-500" />
-        <AlertDescription className="text-sm">
+      <Alert className="bg-[rgb(7,98,39)] border-[rgb(255,210,0)]">
+        <InfoIcon className="h-4 w-4 text-[rgb(255,210,0)]" />
+        <AlertDescription className="text-sm text-white">
           Forneça informações precisas sobre sua localização. Estes dados são essenciais para que o Núcleo de Tecnologia da Informação (NTI) verifique se há algum problema isolado ou parte de uma falha generalizada na infraestrutura de rede.
         </AlertDescription>
       </Alert>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="campus">Campus</Label>
+          <Label htmlFor="campus" className="text-white">Campus</Label>
           <Select
             value={formData.campus}
             onValueChange={(value) => handleSelectChange("campus", value)}
           >
-            <SelectTrigger id="campus">
+            <SelectTrigger id="campus" className="bg-white/10 border-[rgb(255,210,0)] text-white">
               <SelectValue placeholder="Selecione o campus" />
             </SelectTrigger>
             <SelectContent>
@@ -103,70 +115,26 @@ const DiagnosticForm = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="building">Bloco</Label>
-          <Select
-            value={formData.building}
-            onValueChange={(value) => handleSelectChange("building", value)}
-          >
-            <SelectTrigger id="building">
-              <SelectValue placeholder="Selecione o bloco" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="A">Bloco A</SelectItem>
-              <SelectItem value="B">Bloco B</SelectItem>
-              <SelectItem value="C">Bloco C</SelectItem>
-              <SelectItem value="D">Bloco D</SelectItem>
-              <SelectItem value="E">Bloco E</SelectItem>
-              <SelectItem value="F">Bloco F</SelectItem>
-              <SelectItem value="G">Bloco G</SelectItem>
-              <SelectItem value="H">Bloco H</SelectItem>
-              <SelectItem value="I">Bloco I</SelectItem>
-              <SelectItem value="J">Bloco J</SelectItem>
-              <SelectItem value="K">Bloco K</SelectItem>
-              <SelectItem value="L">Bloco L</SelectItem>
-              <SelectItem value="Outro">Outro</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="floor">Andar</Label>
-          <Select
-            value={formData.floor}
-            onValueChange={(value) => handleSelectChange("floor", value)}
-          >
-            <SelectTrigger id="floor">
-              <SelectValue placeholder="Selecione o andar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Térreo">Térreo</SelectItem>
-              <SelectItem value="1º Andar">1º Andar</SelectItem>
-              <SelectItem value="2º Andar">2º Andar</SelectItem>
-              <SelectItem value="3º Andar">3º Andar</SelectItem>
-              <SelectItem value="4º Andar">4º Andar</SelectItem>
-              <SelectItem value="5º Andar">5º Andar</SelectItem>
-              <SelectItem value="Subsolo">Subsolo</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="room">Sala</Label>
+          <Label htmlFor="location" className="text-white">Localização</Label>
           <Input 
-            id="room" 
-            name="room" 
-            placeholder="Digite o número da sala" 
-            value={formData.room} 
+            id="location" 
+            name="location" 
+            placeholder="Ex: Bloco A - Torre 2 - 6º - 603" 
+            value={formData.location} 
             onChange={handleChange}
             required
+            className="bg-white/10 border-[rgb(255,210,0)] text-white placeholder:text-white/50"
           />
+          <p className="text-xs text-white/70">
+            Exemplos: Bloco A - Torre 2 - 6º - 603, Bloco K, Bloco L - 5º andar - L501
+          </p>
         </div>
       </div>
 
       <div className="pt-4">
         <Button 
           type="submit" 
-          className="w-full bg-blue-600 hover:bg-blue-700" 
+          className="w-full bg-[rgb(255,210,0)] hover:bg-[rgb(255,210,0)]/90 text-[rgb(0,66,13)] font-bold" 
           disabled={isSubmitting}
         >
           {isSubmitting ? "Iniciando..." : "Iniciar Diagnóstico"}

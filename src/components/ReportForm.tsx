@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,22 +108,22 @@ const ReportForm: React.FC<ReportFormProps> = ({
   };
 
   return (
-    <div className="mt-8 border-t pt-6">
-      <h3 className="text-lg font-medium mb-4">Informações do Chamado</h3>
+    <div className="mt-8 border-t border-[rgb(255,210,0)] pt-6">
+      <h3 className="text-lg font-medium mb-4 text-white">Informações do Chamado</h3>
       
-      <Card className="border-slate-200 bg-slate-50">
+      <Card className="bg-[rgb(0,66,13)] border-[rgb(255,210,0)]">
         <CardContent className="p-4">
           <div className="flex justify-between items-center">
             <div>
-              <h4 className="font-medium mb-1">Exportar Relatório Completo</h4>
-              <p className="text-sm text-slate-500">
+              <h4 className="font-medium mb-1 text-white">Exportar Relatório Completo</h4>
+              <p className="text-sm text-[rgb(255,210,0)]">
                 Gere um PDF com todos os dados do diagnóstico para compartilhar com o NTI.
               </p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button 
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-[rgb(255,210,0)] hover:bg-[rgb(255,210,0)]/90 text-[rgb(0,66,13)] font-bold"
                 >
                   <span className="flex items-center">
                     <FileText className="mr-2 h-4 w-4" />
@@ -132,18 +131,18 @@ const ReportForm: React.FC<ReportFormProps> = ({
                   </span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="sm:max-w-[425px] bg-[rgb(0,66,13)] border-[rgb(255,210,0)]">
                 <DialogHeader>
-                  <DialogTitle>Número do Chamado</DialogTitle>
-                  <DialogDescription>
+                  <DialogTitle className="text-white">Número do Chamado</DialogTitle>
+                  <DialogDescription className="text-[rgb(255,210,0)]">
                     Digite o número do chamado aberto em servicos.ufabc.edu.br para incluir no relatório.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="flex items-center">
-                    <Label htmlFor="ticketNumber" className="w-24">Chamado #</Label>
+                    <Label htmlFor="ticketNumber" className="w-24 text-white">Chamado #</Label>
                     <div className="flex items-center flex-1">
-                      <span className="bg-slate-100 px-3 py-2 rounded-l-md border border-r-0 border-slate-300 text-slate-500">
+                      <span className="bg-[rgb(0,66,13)] px-3 py-2 rounded-l-md border border-r-0 border-[rgb(255,210,0)] text-[rgb(255,210,0)]">
                         #
                       </span>
                       <Input
@@ -151,7 +150,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
                         placeholder="Digite o código do chamado"
                         value={ticketNumber}
                         onChange={(e) => setTicketNumber(e.target.value)}
-                        className="rounded-l-none"
+                        className="rounded-l-none bg-[rgb(0,66,13)] border-[rgb(255,210,0)] text-white placeholder:text-[rgb(255,210,0)]/50"
                       />
                     </div>
                   </div>
@@ -160,11 +159,11 @@ const ReportForm: React.FC<ReportFormProps> = ({
                   <Button 
                     onClick={generatePDF} 
                     disabled={isGenerating}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-[rgb(255,210,0)] hover:bg-[rgb(255,210,0)]/90 text-[rgb(0,66,13)] font-bold"
                   >
                     {isGenerating ? (
                       <span className="flex items-center">
-                        <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                        <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-[rgb(0,66,13)] mr-2"></span>
                         Gerando...
                       </span>
                     ) : (
