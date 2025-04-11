@@ -16,19 +16,12 @@ interface SpeedTestProps {
 
 const SpeedTest = ({ onTestComplete }: SpeedTestProps) => {
   const [isRunning, setIsRunning] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [currentTest, setCurrentTest] = useState<"ping" | "download" | "upload" | null>(null);
 
   const simulateTest = async (type: "ping" | "download" | "upload") => {
     setCurrentTest(type);
-    setProgress(0);
-
-    // Simula o teste sem delay
-    for (let i = 0; i <= 100; i++) {
-      setProgress(i);
-    }
-
-    // Retorna um resultado aleatório
+    
+    // Retorna um resultado aleatório imediatamente
     switch (type) {
       case "ping":
         return Math.random() * 50 + 10; // 10-60ms
@@ -55,7 +48,6 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps) => {
       });
     } finally {
       setIsRunning(false);
-      setProgress(0);
       setCurrentTest(null);
     }
   };
@@ -77,7 +69,7 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps) => {
       {isRunning ? (
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-[rgb(255,210,0)]">{getTestLabel()}</h3>
-          <Progress value={progress} className="h-2" />
+          <Progress value={100} className="h-2" />
         </div>
       ) : (
         <Button
