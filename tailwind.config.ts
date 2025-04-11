@@ -64,21 +64,9 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				diagnostic: {
-					'blue': {
-						light: '#EBF5FF',
-						DEFAULT: '#3B82F6',
-						dark: '#1E40AF'
-					},
-					'green': {
-						light: '#ECFDF5',
-						DEFAULT: '#10B981',
-						dark: '#047857'
-					},
-					'amber': {
-						light: '#FFFBEB',
-						DEFAULT: '#F59E0B',
-						dark: '#B45309'
-					}
+					'green-dark': 'rgb(0,66,13)',
+					'green-medium': 'rgb(5,103,46)',
+					'yellow': 'rgb(255,210,0)'
 				}
 			},
 			borderRadius: {
@@ -102,11 +90,16 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-custom': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-custom': 'pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
 			}
 		}
 	},

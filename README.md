@@ -1,112 +1,73 @@
-# MeuIP - Aplicação React com Vite e TypeScript
+# Welcome to your Lovable project
 
-## 📋 Sobre o Projeto
+## Project info
 
-MeuIP é uma aplicação web moderna desenvolvida com React, TypeScript e Vite, utilizando o framework de componentes Shadcn UI. A aplicação oferece uma interface moderna e responsiva, construída com as melhores práticas de desenvolvimento web.
+**URL**: https://lovable.dev/projects/39355268-0524-43f1-95b1-fe0ae5ad4391
 
-## 🚀 Tecnologias Utilizadas
+## How can I edit this code?
 
-- **React 18** - Biblioteca JavaScript para construção de interfaces
-- **TypeScript** - Superset JavaScript com tipagem estática
-- **Vite** - Build tool e dev server
-- **Tailwind CSS** - Framework CSS utilitário
-- **Shadcn UI** - Biblioteca de componentes
-- **React Router DOM** - Roteamento
-- **React Query** - Gerenciamento de estado e cache
-- **Supabase** - Backend as a Service
-- **React Hook Form** - Gerenciamento de formulários
-- **Zod** - Validação de esquemas
-- **Lucide React** - Ícones
-- **Date-fns** - Manipulação de datas
+There are several ways of editing your application.
 
-## 🛠️ Estrutura do Projeto
+**Use Lovable**
 
-```
-meuip/
-├── src/
-│   ├── components/     # Componentes reutilizáveis
-│   ├── hooks/         # Custom hooks
-│   ├── integrations/  # Integrações com serviços externos
-│   ├── lib/          # Utilitários e configurações
-│   ├── pages/        # Páginas da aplicação
-│   └── App.tsx       # Componente principal
-├── public/           # Arquivos estáticos
-├── supabase/         # Configurações do Supabase
-└── ...
-```
+Simply visit the [Lovable Project](https://lovable.dev/projects/39355268-0524-43f1-95b1-fe0ae5ad4391) and start prompting.
 
-## ⚙️ Pré-requisitos
+Changes made via Lovable will be committed automatically to this repo.
 
-- Node.js (versão 18 ou superior)
-- npm ou bun (gerenciador de pacotes)
+**Use your preferred IDE**
 
-## 🚀 Como Executar
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-1. Clone o repositório:
-```bash
-git clone [url-do-repositorio]
-cd meuip
-```
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-2. Instale as dependências:
-```bash
-# Usando npm
-npm install
+Follow these steps:
 
-# Ou usando bun
-bun install
-```
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-3. Inicie o servidor de desenvolvimento:
-```bash
-# Usando npm
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
-
-# Ou usando bun
-bun dev
 ```
 
-4. Acesse a aplicação em `http://localhost:5173`
+**Edit a file directly in GitHub**
 
-## 📦 Scripts Disponíveis
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-- `dev`: Inicia o servidor de desenvolvimento
-- `build`: Gera a build de produção
-- `build:dev`: Gera a build de desenvolvimento
-- `lint`: Executa o linter no código
-- `preview`: Visualiza a build localmente
+**Use GitHub Codespaces**
 
-## 🔧 Configuração
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-Para configurar o projeto, você precisará:
+## What technologies are used for this project?
 
-1. Configurar as variáveis de ambiente (crie um arquivo `.env` na raiz do projeto):
-```env
-VITE_SUPABASE_URL=sua_url_do_supabase
-VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
-```
+This project is built with:
 
-## 📚 Documentação Adicional
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-- [React](https://react.dev)
-- [Vite](https://vitejs.dev)
-- [TypeScript](https://www.typescriptlang.org)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Shadcn UI](https://ui.shadcn.com)
-- [Supabase](https://supabase.com)
+## How can I deploy this project?
 
-## 🤝 Contribuindo
+Simply open [Lovable](https://lovable.dev/projects/39355268-0524-43f1-95b1-fe0ae5ad4391) and click on Share -> Publish.
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+## Can I connect a custom domain to my Lovable project?
 
-## 📝 Licença
+Yes it is!
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-## 📧 Contato
-
-Para questões e sugestões, por favor abra uma issue no repositório.
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
