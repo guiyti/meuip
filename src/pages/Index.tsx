@@ -94,18 +94,13 @@ const Index = () => {
       
       <main className="container mx-auto py-8 px-4">
         <div className="grid grid-cols-1 gap-8">
-          {showResults && (
-            <SpeedTestResults 
-              testProgress={testProgress}
-              showResults={showResults}
-            />
-          )}
-          
           <div>
             <ConnectionInfo 
               networkInfo={networkInfo || {
                 ipv4: '',
                 ipv6: null,
+                localIpv4: null,
+                localIpv6: null,
                 connectionType: 'Direct',
                 downloadSpeed: null,
                 uploadSpeed: null,
@@ -114,6 +109,13 @@ const Index = () => {
               }} 
               isLoading={isLoading} 
             />
+            
+            {showResults && (
+              <SpeedTestResults 
+                testProgress={testProgress}
+                showResults={showResults}
+              />
+            )}
             
             <div className="flex justify-center mt-8">
               <Button

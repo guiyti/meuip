@@ -4,15 +4,17 @@ import speedTest from 'speedtest-cli';
 
 // Network connection types
 export type ConnectionType = 'Direct' | 'VPN';
-export type NetworkInfo = {
+export interface NetworkInfo {
   ipv4: string;
   ipv6: string | null;
+  localIpv4: string | null;
+  localIpv6: string | null;
   connectionType: ConnectionType;
   downloadSpeed: number | null;
   uploadSpeed: number | null;
   latency: number | null;
   timestamp: string | null;
-};
+}
 
 export type SpeedTestResult = {
   downloadSpeed: number;
@@ -49,6 +51,18 @@ export const getNetworkInfo = async (): Promise<NetworkInfo> => {
       console.log('IPv6 não disponível');
     }
 
+    // Obter IPs locais
+    let localIpv4 = null;
+    let localIpv6 = null;
+    try {
+      const localIpResponse = await fetch('/api/local-ip');
+      const localIpData = await localIpResponse.json();
+      localIpv4 = localIpData.ipv4;
+      localIpv6 = localIpData.ipv6;
+    } catch (error) {
+      console.log('Não foi possível obter IPs locais:', error);
+    }
+
     // Verificar se é VPN (simplificado)
     const isVPN = ipv4.startsWith('10.') || 
                  (ipv4.startsWith('172.') && parseInt(ipv4.split('.')[1]) >= 16 && parseInt(ipv4.split('.')[1]) <= 31) || 
@@ -57,6 +71,8 @@ export const getNetworkInfo = async (): Promise<NetworkInfo> => {
     return {
       ipv4,
       ipv6,
+      localIpv4,
+      localIpv6,
       connectionType: isVPN ? 'VPN' : 'Direct',
       downloadSpeed: null,
       uploadSpeed: null,

@@ -30,4 +30,16 @@ router.post('/upload', (req, res) => {
   });
 });
 
+// Endpoint para obter IP local do cliente
+router.get('/local-ip', (req, res) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  const ipv6 = req.connection.remoteAddress.includes(':') ? req.connection.remoteAddress : null;
+  const ipv4 = !ipv6 ? ip : null;
+  
+  res.json({
+    ipv4,
+    ipv6
+  });
+});
+
 export default router; 

@@ -67,12 +67,26 @@ const ConnectionInfo: React.FC<ConnectionInfoProps> = ({ networkInfo, isLoading 
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Endereço IPv4</h3>
+                  <h3 className="text-sm font-medium text-gray-500">Endereço IPv4 Local</h3>
+                  <p className="text-lg font-semibold">{networkInfo.localIpv4 || 'Não disponível'}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Endereço IPv6 Local</h3>
+                  <p className="text-lg font-semibold">
+                    {networkInfo.localIpv6 || <span className="text-gray-400">Não disponível</span>}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Endereço IPv4 Público</h3>
                   <p className="text-lg font-semibold">{networkInfo.ipv4}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Endereço IPv6</h3>
+                  <h3 className="text-sm font-medium text-gray-500">Endereço IPv6 Público</h3>
                   <p className="text-lg font-semibold">
                     {networkInfo.ipv6 || <span className="text-gray-400">Não disponível</span>}
                   </p>
@@ -94,20 +108,32 @@ const ConnectionInfo: React.FC<ConnectionInfoProps> = ({ networkInfo, isLoading 
               
               {networkInfo.downloadSpeed !== null && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2 pt-4 border-t border-gray-100">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Download</h3>
-                    <p className="text-lg font-semibold">{networkInfo.downloadSpeed} <span className="text-sm">Mbps</span></p>
-                  </div>
+                  <Card className="p-4">
+                    <CardHeader className="p-0">
+                      <h3 className="text-sm font-medium text-gray-500">Download</h3>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <p className="text-lg font-semibold">{networkInfo.downloadSpeed} <span className="text-sm">Mbps</span></p>
+                    </CardContent>
+                  </Card>
                   
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Upload</h3>
-                    <p className="text-lg font-semibold">{networkInfo.uploadSpeed} <span className="text-sm">Mbps</span></p>
-                  </div>
+                  <Card className="p-4">
+                    <CardHeader className="p-0">
+                      <h3 className="text-sm font-medium text-gray-500">Upload</h3>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <p className="text-lg font-semibold">{networkInfo.uploadSpeed} <span className="text-sm">Mbps</span></p>
+                    </CardContent>
+                  </Card>
                   
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Latência</h3>
-                    <p className="text-lg font-semibold">{networkInfo.latency} <span className="text-sm">ms</span></p>
-                  </div>
+                  <Card className="p-4">
+                    <CardHeader className="p-0">
+                      <h3 className="text-sm font-medium text-gray-500">Latência</h3>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <p className="text-lg font-semibold">{networkInfo.latency} <span className="text-sm">ms</span></p>
+                    </CardContent>
+                  </Card>
                 </div>
               )}
               
