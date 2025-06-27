@@ -125,8 +125,8 @@ app.post('/api/debug-log', express.json(), (req, res) => {
 // Inicialização do servidor
 ensureTestFileExists();
 
-// Use a porta do ambiente ou 3000 como padrão
-const PORT = process.env.PORT || 3000;
+// Use a porta do ambiente ou 80 como padrão
+const PORT = process.env.PORT || 80;
 const server = app.listen(PORT, () => {
     const serverIPs = getServerIPs();
     console.log(`\n🚀 Servidor UFABC - Teste de Pilha Dupla rodando na porta ${PORT}:`);
