@@ -4,7 +4,7 @@
 const config = {
     testFileSize: 1024 * 1024, // 1MB
     testRounds: 1, // 1 rodada por ponto para velocidade (12 pontos = 12 testes)
-    pingCount: 3, // 3 pings por teste - mais eficiente
+    pingCount: 5, // 5 pings base * 3 = 15 medições para latência precisa
     timeoutMs: 45000, // 45 segundos timeout - robusto para produção
     retryAttempts: 3, // 3 tentativas para garantir robustez
     dataPoints: 12, // Pontos de dados para gráficos (mais realista)
@@ -304,28 +304,44 @@ async function testUploadSpeed() {
     }
 }
 
-// Teste de latência
+// Teste de latência otimizado para precisão similar ao ping
 async function latencyTest() {
     try {
-        const PING_COUNT = config.pingCount;
+        // Usar mais medições para maior precisão
+        const PING_COUNT = config.pingCount * 3; // 9-15 medições
         const results = [];
         let successfulPings = 0;
         
         for (let i = 0; i < PING_COUNT; i++) {
             try {
-                const start = Date.now();
-                const response = await fetchWithTimeoutAndRetry('/ping');
+                // Usar Performance API para maior precisão (submilissegundos)
+                const start = performance.now();
+                
+                // Usar endpoint ultra-leve para latência
+                const response = await fetch('/latency', {
+                    method: 'GET',
+                    cache: 'no-cache',
+                    signal: AbortSignal.timeout(5000) // Timeout menor para latência
+                });
                 
                 if (response.ok) {
-                    const duration = Date.now() - start;
-                    if (duration > 0 && duration < config.timeoutMs) {
+                    const end = performance.now();
+                    const duration = end - start;
+                    
+                    // Filtrar medições obviamente incorretas (muito altas)
+                    if (duration > 0 && duration < 1000) { // Máximo 1 segundo
                         results.push(duration);
                         successfulPings++;
                     }
                 }
             } catch (error) {
-                console.warn(`Ping ${i + 1} falhou:`, error.message);
+                // Não logar todos os erros para não poluir console
                 continue;
+            }
+            
+            // Pequeno delay entre medições para evitar congestionamento
+            if (i < PING_COUNT - 1) {
+                await new Promise(resolve => setTimeout(resolve, 50));
             }
         }
         
@@ -337,18 +353,31 @@ async function latencyTest() {
             };
         }
         
-        // Remover outliers apenas se temos pings suficientes
-        let filteredResults = results;
-        if (results.length > 2) {
-            const sortedResults = [...results].sort((a, b) => a - b);
-            filteredResults = sortedResults.slice(1, sortedResults.length - 1);
-        }
+        // Estatísticas mais robustas
+        const sortedResults = [...results].sort((a, b) => a - b);
         
+        // Remover 20% dos extremos (outliers)
+        const removeCount = Math.floor(sortedResults.length * 0.1);
+        const filteredResults = sortedResults.slice(removeCount, sortedResults.length - removeCount);
+        
+        // Calcular estatísticas
         const average = filteredResults.reduce((sum, val) => sum + val, 0) / filteredResults.length;
+        const median = filteredResults[Math.floor(filteredResults.length / 2)];
+        const min = Math.min(...filteredResults);
+        const max = Math.max(...filteredResults);
+        
+        // Log estatísticas para debug
+        console.log(`📊 Latência - Amostras: ${successfulPings}, Média: ${average.toFixed(2)}ms, Mediana: ${median.toFixed(2)}ms, Min: ${min.toFixed(2)}ms, Max: ${max.toFixed(2)}ms`);
         
         return {
-            average,
-            values: results
+            average: median, // Usar mediana em vez de média (mais resistente a outliers)
+            mean: average,
+            median: median,
+            min: min,
+            max: max,
+            values: results,
+            filteredValues: filteredResults,
+            successfulPings: successfulPings
         };
     } catch (error) {
         console.error('Erro no teste de latência:', error);

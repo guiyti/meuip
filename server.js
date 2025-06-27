@@ -123,9 +123,22 @@ app.get('/api/dual-stack-test', (req, res) => {
     res.json(connectionInfo);
 });
 
-// Endpoint para teste de ping
+// Endpoint para teste de ping - ultra leve
 app.get('/ping', (req, res) => {
     res.status(200).send('pong');
+});
+
+// Endpoint específico para latência - mínimo overhead possível
+app.get('/latency', (req, res) => {
+    // Resposta ultra-rápida sem processamento
+    res.writeHead(200, {
+        'Content-Type': 'text/plain',
+        'Content-Length': '2',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    });
+    res.end('ok');
 });
 
 // Endpoint para teste de upload - simplificado para evitar erros

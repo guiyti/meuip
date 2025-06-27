@@ -1,5 +1,17 @@
 # Melhorias Implementadas - Sistema de Teste de Velocidade
 
+## 🔧 **Status das Melhorias Implementadas**
+
+### ✅ **Concluído - Latência Otimizada (Jan 2025)**
+**Problema**: Latência do sistema web (4-6ms) muito diferente do ping ICMP (0.5-2ms)
+- ✅ **Performance API**: Usa `performance.now()` para precisão sub-milissegundo vs `Date.now()`
+- ✅ **Endpoint ultra-leve**: `/latency` otimizado com headers mínimos e resposta direta
+- ✅ **Mais medições**: 15 amostras por teste (5×3) para estatísticas robustas
+- ✅ **Filtros agressivos**: Remove 20% dos extremos (outliers) automaticamente
+- ✅ **Mediana vs média**: Usa mediana (mais resistente a outliers) como valor final
+- ✅ **Função de teste**: `window.testLatency(20)` para comparar diretamente com ping
+- ✅ **Estatísticas detalhadas**: Min, mediana, média, P90, max no console para debug
+
 ## Resumo das Correções
 
 ### 1. **Correção para VPN Institucional**

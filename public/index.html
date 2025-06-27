@@ -883,11 +883,19 @@
                 }
             }
             
-            // Calcular média apenas dos valores válidos
+            // Calcular estatísticas dos valores válidos
             const validData = latencyData.filter(latency => latency > 0);
             if (validData.length > 0) {
                 const avgLatency = validData.reduce((a, b) => a + b, 0) / validData.length;
-                document.getElementById('latency-result').textContent = `${avgLatency.toFixed(2)} ms`;
+                const sortedData = [...validData].sort((a, b) => a - b);
+                const medianLatency = sortedData[Math.floor(sortedData.length / 2)];
+                const minLatency = Math.min(...validData);
+                
+                // Exibir a mediana (mais representativa) como valor principal
+                document.getElementById('latency-result').textContent = `${medianLatency.toFixed(1)} ms`;
+                
+                // Log estatísticas detalhadas para debug
+                console.log(`📊 Latência Final - Mediana: ${medianLatency.toFixed(1)}ms, Média: ${avgLatency.toFixed(1)}ms, Mín: ${minLatency.toFixed(1)}ms`);
             } else {
                 document.getElementById('latency-result').textContent = 'Sem resposta';
             }
@@ -996,6 +1004,66 @@
                 return results;
             } catch (error) {
                 console.error('❌ Erro no teste manual:', error);
+                return null;
+            }
+        };
+
+        // Função de teste específica para latência - para comparar com ping
+        window.testLatency = async function(samples = 20) {
+            console.log(`🏓 Testando latência com ${samples} amostras...`);
+            console.log('⚡ Use esta função para comparar com: ping -c 20 [servidor]');
+            
+            try {
+                const results = [];
+                
+                for (let i = 0; i < samples; i++) {
+                    const start = performance.now();
+                    
+                    const response = await fetch('/latency', {
+                        method: 'GET',
+                        cache: 'no-cache'
+                    });
+                    
+                    if (response.ok) {
+                        const end = performance.now();
+                        const latency = end - start;
+                        results.push(latency);
+                        console.log(`${i + 1}/${samples}: ${latency.toFixed(2)}ms`);
+                    }
+                    
+                    // Pequeno delay entre medições
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                // Calcular estatísticas
+                const sorted = results.sort((a, b) => a - b);
+                const avg = results.reduce((a, b) => a + b, 0) / results.length;
+                const median = sorted[Math.floor(sorted.length / 2)];
+                const min = Math.min(...results);
+                const max = Math.max(...results);
+                const p90 = sorted[Math.floor(sorted.length * 0.9)];
+                
+                console.log('\n📊 Estatísticas de Latência:');
+                console.log(`📈 Amostras: ${results.length}`);
+                console.log(`📉 Mínima: ${min.toFixed(2)}ms`);
+                console.log(`📊 Mediana: ${median.toFixed(2)}ms`);
+                console.log(`📊 Média: ${avg.toFixed(2)}ms`);
+                console.log(`📈 P90: ${p90.toFixed(2)}ms`);
+                console.log(`📈 Máxima: ${max.toFixed(2)}ms`);
+                console.log('\n💡 Compare com: ping -c 20 [IP_DO_SERVIDOR]');
+                
+                return {
+                    samples: results.length,
+                    min: min,
+                    median: median,
+                    average: avg,
+                    p90: p90,
+                    max: max,
+                    rawData: results
+                };
+                
+            } catch (error) {
+                console.error('❌ Erro no teste de latência:', error);
                 return null;
             }
         };
