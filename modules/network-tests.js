@@ -1,16 +1,64 @@
 // modules/network-tests.js
 
-// Configurações
+// Configurações robustas para produção - sempre aplicadas
 const config = {
     testFileSize: 1024 * 1024, // 1MB
-    testRounds: 5,
-    pingCount: 10 // Número de pings para teste de latência
+    testRounds: 1, // 1 rodada por ponto para velocidade (12 pontos = 12 testes)
+    pingCount: 3, // 3 pings por teste - mais eficiente
+    timeoutMs: 45000, // 45 segundos timeout - robusto para produção
+    retryAttempts: 3, // 3 tentativas para garantir robustez
+    dataPoints: 12, // Pontos de dados para gráficos (mais realista)
+    testIntervalMs: 500 // Intervalo entre pontos de dados
 };
+
+// Função utilitária para criar fetch com timeout e retry
+async function fetchWithTimeoutAndRetry(url, options = {}, attempts = config.retryAttempts) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), config.timeoutMs);
+    
+    const fetchOptions = {
+        ...options,
+        signal: controller.signal
+    };
+    
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+        try {
+            const response = await fetch(url, fetchOptions);
+            clearTimeout(timeoutId);
+            return response;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            
+            if (attempt === attempts) {
+                throw error;
+            }
+            
+            // Aguardar antes de tentar novamente
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            
+            // Reiniciar o timeout para a nova tentativa
+            const newController = new AbortController();
+            const newTimeoutId = setTimeout(() => newController.abort(), config.timeoutMs);
+            fetchOptions.signal = newController.signal;
+        }
+    }
+}
 
 // Obter informações do servidor
 async function fetchServerInfo() {
-    const response = await fetch('/api/server-info');
-    return await response.json();
+    const response = await fetchWithTimeoutAndRetry('/api/server-info');
+    const serverInfo = await response.json();
+    
+    console.log('⚙️ Configurações de produção aplicadas:', {
+        timeoutMs: config.timeoutMs,
+        retryAttempts: config.retryAttempts,
+        testRounds: config.testRounds,
+        pingCount: config.pingCount,
+        dataPoints: config.dataPoints,
+        testIntervalMs: config.testIntervalMs
+    });
+    
+    return serverInfo;
 }
 
 // Teste de IP do cliente via IPv4 (forçando IPv4)
@@ -131,25 +179,43 @@ async function testDownloadSpeed() {
         }
         
         let totalSpeed = 0;
+        let successfulRounds = 0;
+        
         for (let i = 0; i < config.testRounds; i++) {
-            const start = Date.now();
-            const response = await fetch('/testfile');
-            
-            if (!response.ok) {
-                if (element) {
-                    element.textContent = 'Arquivo de teste ausente';
-                    element.className = 'error';
+            try {
+                const start = Date.now();
+                const response = await fetchWithTimeoutAndRetry('/testfile');
+                
+                if (!response.ok) {
+                    console.warn(`Teste download falhou na rodada ${i + 1}: ${response.status}`);
+                    continue;
                 }
-                return 'Erro';
+                
+                await response.blob();
+                const duration = (Date.now() - start) / 1000;
+                
+                // Verificar se a duração é válida
+                if (duration > 0 && duration < config.timeoutMs / 1000) {
+                    const bits = config.testFileSize * 8;
+                    const speed = bits / duration / 1_000_000; // Mbps
+                    totalSpeed += speed;
+                    successfulRounds++;
+                }
+            } catch (error) {
+                console.warn(`Erro na rodada ${i + 1} do teste download:`, error.message);
+                continue;
             }
-            
-            await response.blob();
-            const duration = (Date.now() - start) / 1000;
-            const bits = config.testFileSize * 8;
-            totalSpeed += bits / duration / 1_000_000; // Mbps
         }
 
-        const avg = totalSpeed / config.testRounds;
+        if (successfulRounds === 0) {
+            if (element) {
+                element.textContent = 'Sem conectividade';
+                element.className = 'error';
+            }
+            return 0;
+        }
+
+        const avg = totalSpeed / successfulRounds;
         const formattedValue = avg.toFixed(2);
         
         // Atualizar o elemento se existir
@@ -166,7 +232,7 @@ async function testDownloadSpeed() {
             element.className = 'error';
         }
         console.error('Erro teste download:', error);
-        return 'Erro';
+        return 0;
     }
 }
 
@@ -178,29 +244,46 @@ async function testUploadSpeed() {
         if (element) element.textContent = 'Testando...';
         
         let totalSpeed = 0;
+        let successfulRounds = 0;
         const data = new Uint8Array(config.testFileSize);
 
         for (let i = 0; i < config.testRounds; i++) {
-            const start = Date.now();
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: data
-            });
-            
-            if (!response.ok) {
-                if (element) {
-                    element.textContent = 'Erro no servidor';
-                    element.className = 'error';
+            try {
+                const start = Date.now();
+                const response = await fetchWithTimeoutAndRetry('/upload', {
+                    method: 'POST',
+                    body: data
+                });
+                
+                if (!response.ok) {
+                    console.warn(`Teste upload falhou na rodada ${i + 1}: ${response.status}`);
+                    continue;
                 }
-                return 'Erro';
+                
+                const duration = (Date.now() - start) / 1000;
+                
+                // Verificar se a duração é válida
+                if (duration > 0 && duration < config.timeoutMs / 1000) {
+                    const bits = config.testFileSize * 8;
+                    const speed = bits / duration / 1_000_000; // Mbps
+                    totalSpeed += speed;
+                    successfulRounds++;
+                }
+            } catch (error) {
+                console.warn(`Erro na rodada ${i + 1} do teste upload:`, error.message);
+                continue;
             }
-            
-            const duration = (Date.now() - start) / 1000;
-            const bits = config.testFileSize * 8;
-            totalSpeed += bits / duration / 1_000_000; // Mbps
         }
 
-        const avg = totalSpeed / config.testRounds;
+        if (successfulRounds === 0) {
+            if (element) {
+                element.textContent = 'Sem conectividade';
+                element.className = 'error';
+            }
+            return 0;
+        }
+
+        const avg = totalSpeed / successfulRounds;
         const formattedValue = avg.toFixed(2);
         
         // Atualizar o elemento se existir
@@ -217,7 +300,7 @@ async function testUploadSpeed() {
             element.className = 'error';
         }
         console.error('Erro teste upload:', error);
-        return 'Erro';
+        return 0;
     }
 }
 
@@ -226,17 +309,40 @@ async function latencyTest() {
     try {
         const PING_COUNT = config.pingCount;
         const results = [];
+        let successfulPings = 0;
         
         for (let i = 0; i < PING_COUNT; i++) {
-            const start = Date.now();
-            await fetch('/ping');
-            const duration = Date.now() - start;
-            results.push(duration);
+            try {
+                const start = Date.now();
+                const response = await fetchWithTimeoutAndRetry('/ping');
+                
+                if (response.ok) {
+                    const duration = Date.now() - start;
+                    if (duration > 0 && duration < config.timeoutMs) {
+                        results.push(duration);
+                        successfulPings++;
+                    }
+                }
+            } catch (error) {
+                console.warn(`Ping ${i + 1} falhou:`, error.message);
+                continue;
+            }
         }
         
-        // Remover outliers (opcional)
-        const sortedResults = [...results].sort((a, b) => a - b);
-        const filteredResults = sortedResults.slice(1, sortedResults.length - 1);
+        if (successfulPings === 0) {
+            return {
+                average: null,
+                values: [],
+                error: 'Sem conectividade'
+            };
+        }
+        
+        // Remover outliers apenas se temos pings suficientes
+        let filteredResults = results;
+        if (results.length > 2) {
+            const sortedResults = [...results].sort((a, b) => a - b);
+            filteredResults = sortedResults.slice(1, sortedResults.length - 1);
+        }
         
         const average = filteredResults.reduce((sum, val) => sum + val, 0) / filteredResults.length;
         
