@@ -44,29 +44,55 @@ app.get('/api/server-info', (req, res) => {
 
 // API que retorna os IPs do cliente - versão melhorada para pilha dupla
 app.get('/api/client-ips', (req, res) => {
-    const clientIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
-    const ipList = clientIP.toString().split(',').map(ip => ip.trim());
+    const xForwardedFor = req.headers['x-forwarded-for'] || '';
+    const remoteAddress = req.socket.remoteAddress || '';
+    const xRealIP = req.headers['x-real-ip'] || '';
     
-    // Para desenvolvimento local, também incluir IPs do servidor
+    // Coletar todos os IPs possíveis
+    const allPossibleIPs = [];
+    
+    // Adicionar IPs do x-forwarded-for (podem ser múltiplos)
+    if (xForwardedFor) {
+        const forwardedIPs = xForwardedFor.split(',').map(ip => ip.trim());
+        allPossibleIPs.push(...forwardedIPs);
+    }
+    
+    // Adicionar IP real
+    if (xRealIP) {
+        allPossibleIPs.push(xRealIP.trim());
+    }
+    
+    // Adicionar IP da conexão direta
+    if (remoteAddress) {
+        allPossibleIPs.push(remoteAddress.trim());
+    }
+    
+    // Para desenvolvimento local, incluir IPs do servidor
     const serverIPs = getServerIPs();
-    const allIPs = [...ipList];
-    
-    // Se está acessando localmente, usar os IPs do servidor como referência
-    const isLocalhost = ipList.some(ip => 
+    const isLocalhost = allPossibleIPs.some(ip => 
         ip.includes('127.0.0.1') || 
         ip.includes('::1') || 
-        ip.includes('localhost')
+        ip === 'localhost'
     );
     
     if (isLocalhost) {
-        if (serverIPs.ipv4) allIPs.push(serverIPs.ipv4);
-        if (serverIPs.ipv6) allIPs.push(serverIPs.ipv6);
+        console.log(`[DEBUG] Localhost detected, adding server IPs: IPv4=${serverIPs.ipv4}, IPv6=${serverIPs.ipv6}`);
+        if (serverIPs.ipv4) allPossibleIPs.push(serverIPs.ipv4);
+        if (serverIPs.ipv6) allPossibleIPs.push(serverIPs.ipv6);
     }
     
-    const ips = ipUtils.categorizeIPs(allIPs);
+    // Categorizar IPs
+    const ips = ipUtils.categorizeIPs(allPossibleIPs);
     
-    // Log para debug
-    console.log(`[${new Date().toISOString()}] Client request - IPs detected:`, ips);
+    // Log detalhado para debug
+    console.log(`[${new Date().toISOString()}] Client IP Detection:`, {
+        xForwardedFor,
+        xRealIP,
+        remoteAddress,
+        allPossibleIPs,
+        result: ips,
+        isLocalhost
+    });
     
     res.json(ips);
 });

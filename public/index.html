@@ -39,7 +39,7 @@
         .header-banner {
             background-color: var(--primary-green);
             color: var(--white);
-            padding: 1rem 0;
+            padding: 0.7rem 0;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
@@ -102,12 +102,12 @@
             background-color: var(--white);
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            padding: 2rem;
+            padding: 1.5rem;
             width: 100%;
             max-width: 1000px;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 300px;
+            grid-template-columns: 1fr 1fr 300px;
             gap: 2rem;
             align-items: center;
             transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
@@ -118,10 +118,10 @@
         }
 
         .ip-label {
-            font-weight: 500;
+            font-weight: 600;
             color: var(--secondary-green);
             margin-bottom: 0.5rem;
-            font-size: 0.9rem;
+            font-size: 1rem;
         }
 
         .ip-value {
@@ -129,7 +129,7 @@
             background-color: var(--light-gray);
             border-radius: 8px;
             font-weight: 500;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             min-height: 50px;
             display: flex;
             align-items: center;
@@ -139,65 +139,39 @@
             text-overflow: ellipsis;
         }
 
-        .connection-info {
-            text-align: center;
+        .test-controls {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 1rem;
+            align-items: center;
         }
 
         .connection-badge {
-            padding: 0.6rem 1.2rem;
-            border-radius: 25px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 500;
             text-transform: none;
             white-space: nowrap;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.3rem;
             transition: all 0.3s ease;
-            border: 2px solid transparent;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .connection-badge::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .connection-badge:hover::before {
-            left: 100%;
+            border: 1px solid transparent;
+            opacity: 0.8;
         }
 
         .badge-direct {
-            background: linear-gradient(135deg, #059b2e, #004511);
-            color: var(--white);
-            box-shadow: 0 4px 12px rgba(5, 155, 46, 0.3);
-        }
-
-        .badge-direct:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(5, 155, 46, 0.4);
+            background: rgba(5, 155, 46, 0.1);
+            color: var(--primary-green);
+            border-color: rgba(5, 155, 46, 0.2);
         }
 
         .badge-vpn {
-            background: linear-gradient(135deg, #ffd700, #ffb700);
-            color: var(--secondary-green);
-            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
-        }
-
-        .badge-vpn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(255, 215, 0, 0.4);
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+            border-color: rgba(255, 193, 7, 0.2);
         }
 
         .connection-status-icon {
@@ -233,20 +207,21 @@
             gap: 0.75rem;
             width: 100%;
             padding: 0.8rem 1rem;
-            background: linear-gradient(45deg, var(--highlight-yellow), #ffd633);
-            color: var(--secondary-green);
+            background: linear-gradient(135deg, #059b2e, #007a24);
+            color: var(--white);
             border: none;
             border-radius: 50px;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 210, 0, 0.3);
+            box-shadow: 0 6px 20px rgba(5, 155, 46, 0.4);
         }
 
         .main-button:hover:not(:disabled) {
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(255, 210, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(5, 155, 46, 0.5);
+            background: linear-gradient(135deg, #06a630, #008326);
         }
         
         .main-button:disabled {
@@ -306,8 +281,8 @@
 
         .result-item {
             text-align: center;
-            padding: 1.5rem 1rem;
-            height: 260px;
+            padding: 1rem;
+            height: 240px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -346,22 +321,17 @@
             text-overflow: ellipsis;
         }
 
-        .test-progress {
-            font-size: 0.85rem;
-            color: var(--highlight-yellow);
-            margin-top: 0.5rem;
-            font-weight: 500;
-        }
 
-        .test-progress i {
-            margin-right: 0.3rem;
-        }
         
         @media (max-width: 1024px) {
             .control-bar {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
                 text-align: center;
+            }
+            
+            .test-controls {
+                gap: 0.8rem;
             }
             
             .results-grid {
@@ -371,7 +341,7 @@
             .result-item {
                 border-right: none;
                 border-bottom: 1px solid var(--medium-gray);
-                height: 200px;
+                height: 280px;
             }
             
             .result-item:last-child {
@@ -379,7 +349,7 @@
             }
 
             .mini-chart-container {
-                height: 140px;
+                height: 180px;
             }
 
             .title-header h1 {
@@ -392,9 +362,18 @@
         }
 
         @media (max-width: 768px) {
+            /* Banner compacto */
+            .header-banner {
+                padding: 0.5rem 0;
+            }
+            
             .site-logo {
                 text-align: center;
-                margin-bottom: 1rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .site-logo img {
+                max-width: 60px;
             }
             
             .title-header {
@@ -402,38 +381,75 @@
             }
 
             .title-header h1 {
-                font-size: 1.2rem;
+                font-size: 1rem;
+                margin-bottom: 0.1rem;
             }
 
             .description-header {
-                font-size: 0.9rem;
+                font-size: 0.75rem;
+                margin-bottom: 0.1rem;
             }
             
+            .test-subtitle {
+                font-size: 0.7rem;
+                margin-top: 0.2rem;
+                padding: 0.2rem 0;
+            }
+            
+            /* Layout mobile otimizado */
             .control-bar {
-                margin: 1rem;
-                padding: 1.5rem;
+                margin: 0.5rem;
+                padding: 1rem;
             }
             
             .main-container {
-                padding: 1rem;
-            }
-
-            .main-container.testing-mode {
-                padding-top: 1rem;
-            }
-
-            .result-value {
-                font-size: 1.4rem;
-            }
-
-            .ip-value {
-                font-size: 0.8rem;
                 padding: 0.5rem;
             }
 
-            .test-subtitle {
-                font-size: 0.9rem;
-                margin-top: 0.5rem;
+            .main-container.testing-mode {
+                padding-top: 0.5rem;
+            }
+
+            /* Gráficos grandes no mobile */
+            .result-item {
+                height: 350px;
+                padding: 1rem;
+            }
+
+            .mini-chart-container {
+                height: 220px;
+            }
+
+            .result-value {
+                font-size: 1.6rem;
+            }
+
+            .ip-value {
+                font-size: 0.75rem;
+                padding: 0.4rem;
+                min-height: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* Telas muito pequenas - gráficos ainda maiores */
+            .result-item {
+                height: 400px;
+                padding: 0.8rem;
+            }
+
+            .mini-chart-container {
+                height: 260px;
+            }
+
+            .control-bar {
+                margin: 0.3rem;
+                padding: 0.8rem;
+            }
+
+            .connection-badge {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.6rem;
             }
         }
     </style>
@@ -457,7 +473,7 @@
                                         <h2 class="description-header">Universidade Federal do ABC</h2>
                                     </div>
                                     <div class="test-subtitle">
-                                        <i class="fas fa-network-wired"></i> Sistema de Teste de Velocidade da Rede Interna
+                                        <i class="fas fa-network-wired"></i> Sistema de Teste de Velocidade da RedUFABC
                                     </div>
                                 </div>
                             </div>
@@ -473,26 +489,21 @@
             <div class="ip-info">
                 <div class="ip-label">Endereço IPv4</div>
                 <div class="ip-value" id="ipv4">Carregando...</div>
-                </div>
+            </div>
             
             <div class="ip-info">
                 <div class="ip-label">Endereço IPv6</div>
                 <div class="ip-value" id="ipv6">Carregando...</div>
             </div>
 
-            <div class="connection-info">
-                <div class="ip-label">Status da Rede</div>
+            <div class="test-controls">
                 <div class="connection-badge badge-direct" id="connection-badge">
                     <i class="fas fa-spinner fa-spin connection-status-icon"></i>detectando...
                 </div>
-            </div>
-            
-            <div class="test-controls">
-                <input type="text" id="location-input" class="form-control" placeholder="Sua localização (ex: Bloco A, sala 603)">
-            <button id="start-test-btn" class="main-button">
-                <i class="fas fa-rocket"></i>
-                <span>Iniciar Teste</span>
-            </button>
+                <button id="start-test-btn" class="main-button">
+                    <i class="fas fa-rocket"></i>
+                    <span>Iniciar Teste</span>
+                </button>
             </div>
         </div>
 
@@ -508,9 +519,6 @@
                         <canvas id="download-chart"></canvas>
                     </div>
                     <div class="result-value" id="download-result">-- Mbps</div>
-                    <div class="test-progress" id="download-progress" style="display:none;">
-                        <i class="fas fa-spinner fa-spin"></i> Testando...
-                    </div>
                 </div>
                 <div class="result-item">
                     <div class="result-label">Upload</div>
@@ -518,9 +526,6 @@
                         <canvas id="upload-chart"></canvas>
                     </div>
                     <div class="result-value" id="upload-result">-- Mbps</div>
-                    <div class="test-progress" id="upload-progress" style="display:none;">
-                        <i class="fas fa-spinner fa-spin"></i> Testando...
-                    </div>
                 </div>
                 <div class="result-item">
                     <div class="result-label">Latência</div>
@@ -528,9 +533,6 @@
                         <canvas id="latency-chart"></canvas>
                     </div>
                     <div class="result-value" id="latency-result">-- ms</div>
-                    <div class="test-progress" id="latency-progress" style="display:none;">
-                        <i class="fas fa-spinner fa-spin"></i> Testando...
-                    </div>
                 </div>
             </div>
         </div>
@@ -549,7 +551,6 @@
 
         // --- DOM Elements ---
         const startTestBtn = document.getElementById('start-test-btn');
-        const locationInput = document.getElementById('location-input');
         const resultsSection = document.getElementById('results-section');
         const testStatus = document.getElementById('test-status');
         const mainContainer = document.getElementById('main-container');
@@ -567,26 +568,13 @@
             chartLabels: [],
         };
 
-        // --- Storage Functions ---
-        function saveLocation(location) {
-            localStorage.setItem('ufabc-test-location', location);
-        }
 
-        function loadLocation() {
-            return localStorage.getItem('ufabc-test-location') || '';
-        }
 
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             loadInitialInfo();
             startTestBtn.addEventListener('click', startDiagnostic);
             initCharts();
-            
-            // Carregar localização salva
-            const savedLocation = loadLocation();
-            if (savedLocation) {
-                locationInput.value = savedLocation;
-            }
         });
 
         // --- Core Functions ---
@@ -606,93 +594,111 @@
                 const currentStack = await currentStackTest.json();
                 console.log('📊 Stack atual detectado:', currentStack);
                 
-                // Teste 2: Tentar IPv4 específico
-                let ipv4Result = 'Não detectado';
-                if (serverInfo.ipv4) {
-                    try {
-                        console.log(`🌐 Testando IPv4 via ${serverInfo.ipv4}...`);
-                        const ipv4Response = await fetch(`http://${serverInfo.ipv4}:${window.location.port || 3000}/api/client-ips`, {
-                            signal: AbortSignal.timeout(5000) // 5 segundos timeout
-                        });
-                        const ipv4Data = await ipv4Response.json();
-                        if (ipv4Data.ipv4 && ipv4Data.ipv4 !== 'Não detectado') {
-                            ipv4Result = ipv4Data.ipv4;
-                            console.log('✅ IPv4 detectado:', ipv4Result);
-                        }
-                    } catch (error) {
-                        console.log('⚠️ Teste IPv4 específico falhou:', error.message);
-                        // Fallback: usar o resultado do currentStack se for IPv4
-                        if (currentStack.detectedStack === 'IPv4' && currentStack.clientIP) {
-                            const cleanIP = currentStack.clientIP.replace(/^::ffff:/, '');
-                            if (cleanIP.includes('.') && cleanIP !== '127.0.0.1') {
-                                ipv4Result = cleanIP;
-                                console.log('🔄 IPv4 obtido via fallback:', ipv4Result);
-                            }
-                        }
-                    }
-                }
+                // Forçar detecção de ambos os IPs através de múltiplas estratégias
+                const dualStackResults = await forceDualStackDetection(serverInfo, currentStack);
                 
-                // Teste 3: Tentar IPv6 específico
-                let ipv6Result = 'Não detectado';
-                if (serverInfo.ipv6) {
-                    try {
-                        console.log(`🌍 Testando IPv6 via [${serverInfo.ipv6}]...`);
-                        const ipv6Response = await fetch(`http://[${serverInfo.ipv6}]:${window.location.port || 3000}/api/client-ips`, {
-                            signal: AbortSignal.timeout(5000) // 5 segundos timeout
-                        });
-                        const ipv6Data = await ipv6Response.json();
-                        if (ipv6Data.ipv6 && ipv6Data.ipv6 !== 'Não detectado') {
-                            ipv6Result = ipv6Data.ipv6;
-                            console.log('✅ IPv6 detectado:', ipv6Result);
-                        }
-                    } catch (error) {
-                        console.log('⚠️ Teste IPv6 específico falhou:', error.message);
-                        // Fallback: usar o resultado do currentStack se for IPv6
-                        if (currentStack.detectedStack === 'IPv6' && currentStack.clientIP) {
-                            const cleanIP = currentStack.clientIP;
-                            if (cleanIP.includes(':') && !cleanIP.startsWith('fe80:') && cleanIP !== '::1') {
-                                ipv6Result = cleanIP;
-                                console.log('🔄 IPv6 obtido via fallback:', ipv6Result);
-                            }
-                        }
-                    }
-                }
-                
-                // Teste 4: Fallback final - usar endpoint padrão
-                if (ipv4Result === 'Não detectado' || ipv6Result === 'Não detectado') {
-                    try {
-                        console.log('🔄 Executando fallback via endpoint padrão...');
-                        const fallbackResponse = await fetch('/api/client-ips');
-                        const fallbackData = await fallbackResponse.json();
-                        
-                        if (ipv4Result === 'Não detectado' && fallbackData.ipv4 !== 'Não detectado') {
-                            ipv4Result = fallbackData.ipv4;
-                            console.log('🔄 IPv4 obtido via fallback:', ipv4Result);
-                        }
-                        
-                        if (ipv6Result === 'Não detectado' && fallbackData.ipv6 !== 'Não detectado') {
-                            ipv6Result = fallbackData.ipv6;
-                            console.log('🔄 IPv6 obtido via fallback:', ipv6Result);
-                        }
-                    } catch (error) {
-                        console.error('❌ Fallback também falhou:', error);
-                    }
-                }
-                
-                // Atualizar interface
-                ipv4Element.textContent = ipv4Result;
-                ipv6Element.textContent = ipv6Result;
+                // Atualizar interface com os resultados
+                ipv4Element.textContent = dualStackResults.ipv4;
+                ipv6Element.textContent = dualStackResults.ipv6;
                 
                 // Determinar tipo de conexão baseado nos IPs detectados
-                updateConnectionBadges(ipv4Result, ipv6Result);
+                updateConnectionBadges(dualStackResults.ipv4, dualStackResults.ipv6);
                 
-                console.log('🎯 Pilha dupla testada - IPv4:', ipv4Result, '| IPv6:', ipv6Result);
+                console.log('🎯 Pilha dupla detectada - IPv4:', dualStackResults.ipv4, '| IPv6:', dualStackResults.ipv6);
 
             } catch (error) {
                 console.error('❌ Erro ao carregar informações iniciais:', error);
                 ipv4Element.textContent = 'Erro';
                 ipv6Element.textContent = 'Erro';
             }
+        }
+
+        // Função para forçar detecção de pilha dupla
+        async function forceDualStackDetection(serverInfo, currentStack) {
+            let ipv4Result = 'Não detectado';
+            let ipv6Result = 'Não detectado';
+                
+            // Estratégia 1: Endpoint padrão (melhor para detecção geral)
+            try {
+                console.log('🔄 Testando endpoint padrão...');
+                const fallbackResponse = await fetch('/api/client-ips');
+                const fallbackData = await fallbackResponse.json();
+                
+                if (fallbackData.ipv4 && fallbackData.ipv4 !== 'Não detectado') {
+                    ipv4Result = fallbackData.ipv4;
+                    console.log('✅ IPv4 detectado via endpoint padrão:', ipv4Result);
+                }
+                
+                if (fallbackData.ipv6 && fallbackData.ipv6 !== 'Não detectado') {
+                    ipv6Result = fallbackData.ipv6;
+                    console.log('✅ IPv6 detectado via endpoint padrão:', ipv6Result);
+                }
+            } catch (error) {
+                console.log('⚠️ Endpoint padrão falhou:', error.message);
+            }
+
+            // Estratégia 2: Tentar IPv4 específico (se disponível)
+            if (serverInfo.ipv4) {
+                try {
+                    console.log(`🌐 Testando IPv4 via ${serverInfo.ipv4}...`);
+                    const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+                    const ipv4Response = await fetch(`http://${serverInfo.ipv4}:${port}/api/client-ips`, {
+                        signal: AbortSignal.timeout(8000) // 8 segundos timeout
+                    });
+                    const ipv4Data = await ipv4Response.json();
+                    if (ipv4Data.ipv4 && ipv4Data.ipv4 !== 'Não detectado') {
+                        ipv4Result = ipv4Data.ipv4;
+                        console.log('✅ IPv4 confirmado via IP específico:', ipv4Result);
+                    }
+                    if (ipv4Data.ipv6 && ipv4Data.ipv6 !== 'Não detectado' && ipv6Result === 'Não detectado') {
+                        ipv6Result = ipv4Data.ipv6;
+                        console.log('✅ IPv6 detectado via IPv4 específico:', ipv6Result);
+                    }
+                } catch (error) {
+                    console.log('⚠️ Teste IPv4 específico falhou:', error.message);
+                }
+            }
+                
+            // Estratégia 3: Tentar IPv6 específico (se disponível)
+            if (serverInfo.ipv6) {
+                try {
+                    console.log(`🌍 Testando IPv6 via [${serverInfo.ipv6}]...`);
+                    const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+                    const ipv6Response = await fetch(`http://[${serverInfo.ipv6}]:${port}/api/client-ips`, {
+                        signal: AbortSignal.timeout(8000) // 8 segundos timeout
+                    });
+                    const ipv6Data = await ipv6Response.json();
+                    if (ipv6Data.ipv6 && ipv6Data.ipv6 !== 'Não detectado') {
+                        ipv6Result = ipv6Data.ipv6;
+                        console.log('✅ IPv6 confirmado via IP específico:', ipv6Result);
+                    }
+                    if (ipv6Data.ipv4 && ipv6Data.ipv4 !== 'Não detectado' && ipv4Result === 'Não detectado') {
+                        ipv4Result = ipv6Data.ipv4;
+                        console.log('✅ IPv4 detectado via IPv6 específico:', ipv4Result);
+                    }
+                } catch (error) {
+                    console.log('⚠️ Teste IPv6 específico falhou:', error.message);
+                }
+            }
+                
+            // Estratégia 4: Fallback usando currentStack
+            if (ipv4Result === 'Não detectado' && currentStack.clientIP) {
+                const cleanIP = currentStack.clientIP.replace(/^::ffff:/, '');
+                if (cleanIP.includes('.') && cleanIP !== '127.0.0.1') {
+                    ipv4Result = cleanIP;
+                    console.log('🔄 IPv4 extraído do currentStack:', ipv4Result);
+                }
+            }
+            
+            if (ipv6Result === 'Não detectado' && currentStack.clientIP) {
+                const cleanIP = currentStack.clientIP;
+                if (cleanIP.includes(':') && !cleanIP.startsWith('fe80:') && cleanIP !== '::1' && !cleanIP.includes('::ffff:')) {
+                    ipv6Result = cleanIP;
+                    console.log('🔄 IPv6 extraído do currentStack:', ipv6Result);
+                }
+            }
+            
+            return { ipv4: ipv4Result, ipv6: ipv6Result };
         }
 
         function updateConnectionBadges(ipv4, ipv6) {
@@ -712,37 +718,13 @@
             
             connectionBadge.innerHTML = `${icon}${networkType}`;
             connectionBadge.className = `connection-badge ${isVpn ? 'badge-vpn' : 'badge-direct'}`;
-            
-            // Se for VPN institucional, ocultar campo de localização
-            if (isVpn) {
-                locationInput.style.display = 'none';
-                locationInput.value = 'VPN Institucional - Localização automática';
-            } else {
-                locationInput.style.display = 'block';
-                if (locationInput.value === 'VPN Institucional - Localização automática') {
-                    locationInput.value = loadLocation();
-                }
-            }
         }
 
         async function startDiagnostic() {
-            // Se for VPN, não requer localização
+            // Determinar tipo de conexão para logs
             const isVpn = connectionBadge.classList.contains('badge-vpn');
+            const location = isVpn ? 'VPN Institucional' : 'Rede Interna';
             
-            let location = locationInput.value.trim();
-            if (!isVpn && !location) {
-                alert('Por favor, informe a sua localização para iniciar o teste.');
-                locationInput.focus();
-                return;
-            }
-            
-            // Para VPN, usar localização automática
-            if (isVpn) {
-                location = 'VPN Institucional - Localização automática';
-            }
-            
-            // Salvar localização no storage
-            saveLocation(location);
             testConfig.location = location;
 
             // Animações de layout
@@ -759,7 +741,7 @@
             await runTest('upload', runUploadTest);
             await runTest('latency', runLatencyTest);
 
-            testStatus.textContent = 'Testes concluídos!';
+            testStatus.textContent = 'Análise finalizada';
             startTestBtn.disabled = false;
             startTestBtn.querySelector('span').textContent = 'Iniciar Novo Teste';
         }
@@ -786,23 +768,12 @@
         async function runTest(testName, testFunction) {
             testStatus.textContent = `Executando teste de ${testName}...`;
             
-            // Mostrar indicador de progresso
-            const progressElement = document.getElementById(`${testName}-progress`);
-            if (progressElement) {
-                progressElement.style.display = 'block';
-            }
-            
             try {
                 await testFunction();
             } catch (error) {
                 console.error(`Erro no teste de ${testName}:`, error);
                 const unit = testName === 'latency' ? 'ms' : 'Mbps';
                 document.getElementById(`${testName}-result`).textContent = `Erro ${unit}`;
-            } finally {
-                // Ocultar indicador de progresso
-                if (progressElement) {
-                    progressElement.style.display = 'none';
-                }
             }
         }
 
@@ -1006,6 +977,28 @@
             chart.data.datasets[0].data = data;
             chart.update('none');
         }
+
+        // Função de depuração para testar manualmente a pilha dupla
+        window.testDualStack = async function() {
+            console.log('🔍 Testando pilha dupla manualmente...');
+            try {
+                const serverInfo = await fetchServerInfo();
+                const currentStackTest = await fetch('/api/dual-stack-test');
+                const currentStack = await currentStackTest.json();
+                
+                const results = await forceDualStackDetection(serverInfo, currentStack);
+                console.log('🎯 Resultados:', results);
+                
+                ipv4Element.textContent = results.ipv4;
+                ipv6Element.textContent = results.ipv6;
+                updateConnectionBadges(results.ipv4, results.ipv6);
+                
+                return results;
+            } catch (error) {
+                console.error('❌ Erro no teste manual:', error);
+                return null;
+            }
+        };
     </script>
 </body>
 </html>

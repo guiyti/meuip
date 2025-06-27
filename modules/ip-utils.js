@@ -39,17 +39,55 @@ function categorizeIPs(ipList) {
         return ips;
     }
     
+    // Primeiro, tentar encontrar IPs válidos
+    const validIPv4s = [];
+    const validIPv6s = [];
+    
     ipList.forEach(ip => {
-        const cleaned = ip.replace(/^::ffff:/, ''); // Remove prefixo IPv4-mapped
+        if (!ip || typeof ip !== 'string') return;
         
-        if (cleaned.includes('.') && cleaned !== '127.0.0.1') {
-            // É IPv4 e não é localhost
-            ips.ipv4 = cleaned;
-        } else if (cleaned.includes(':') && !cleaned.startsWith('fe80:') && cleaned !== '::1') {
-            // É IPv6, não é link-local e não é localhost
-            ips.ipv6 = cleaned;
+        const cleaned = ip.trim().replace(/^::ffff:/, ''); // Remove prefixo IPv4-mapped
+        
+        if (cleaned.includes('.') && cleaned !== '127.0.0.1' && cleaned !== '0.0.0.0') {
+            // É IPv4 e não é localhost/inválido
+            validIPv4s.push(cleaned);
+        } else if (cleaned.includes(':') && !cleaned.startsWith('fe80:') && cleaned !== '::1' && cleaned !== '::') {
+            // É IPv6, não é link-local, não é localhost e não é inválido
+            validIPv6s.push(cleaned);
         }
     });
+    
+    // Escolher o melhor IP de cada tipo
+    if (validIPv4s.length > 0) {
+        // Priorizar IPs da rede institucional (172.x.x.x), depois outros privados, depois públicos
+        const institutionIPs = validIPv4s.filter(ip => ip.startsWith('172.'));
+        const privateIPs = validIPv4s.filter(ip => ip.startsWith('192.168.') || ip.startsWith('10.'));
+        const publicIPs = validIPv4s.filter(ip => !ip.startsWith('192.168.') && !ip.startsWith('10.') && !ip.startsWith('172.'));
+        
+        if (institutionIPs.length > 0) {
+            ips.ipv4 = institutionIPs[0];
+        } else if (privateIPs.length > 0) {
+            ips.ipv4 = privateIPs[0];
+        } else if (publicIPs.length > 0) {
+            ips.ipv4 = publicIPs[0];
+        } else {
+            ips.ipv4 = validIPv4s[0];
+        }
+    }
+    
+    if (validIPv6s.length > 0) {
+        // Priorizar IPs globais sobre unique local (fc00::/7)
+        const globalIPs = validIPv6s.filter(ip => !ip.startsWith('fc') && !ip.startsWith('fd'));
+        const uniqueLocalIPs = validIPv6s.filter(ip => ip.startsWith('fc') || ip.startsWith('fd'));
+        
+        if (globalIPs.length > 0) {
+            ips.ipv6 = globalIPs[0];
+        } else if (uniqueLocalIPs.length > 0) {
+            ips.ipv6 = uniqueLocalIPs[0];
+        } else {
+            ips.ipv6 = validIPv6s[0];
+        }
+    }
 
     return ips;
 }
