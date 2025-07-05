@@ -141,6 +141,142 @@ app.get('/latency', (req, res) => {
     res.end('ok');
 });
 
+// Endpoint para ping real do servidor para o cliente
+app.get('/api/ping-real', async (req, res) => {
+    try {
+        // Capturar o IP real do cliente
+        let rawClientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                         req.headers['x-real-ip'] ||
+                         req.connection.remoteAddress ||
+                         req.socket.remoteAddress ||
+                         (req.connection.socket ? req.connection.socket.remoteAddress : null);
+
+        // Limpar IPv6-mapped IPv4 addresses (::ffff:192.168.1.1 -> 192.168.1.1)
+        let clientIP = rawClientIP;
+        if (clientIP && clientIP.startsWith('::ffff:')) {
+            clientIP = clientIP.substring(7);
+        }
+
+        console.log(`🏓 IP capturado: ${rawClientIP} -> limpo: ${clientIP}`);
+
+        // Validar se é um IP válido para ping
+        if (!clientIP || 
+            clientIP === '::1' || 
+            clientIP === '127.0.0.1' || 
+            clientIP === 'localhost' ||
+            clientIP.includes('::')) {
+            return res.json({
+                error: 'IP local ou inválido detectado - ping não aplicável',
+                rawIP: rawClientIP,
+                cleanIP: clientIP
+            });
+        }
+
+        // Validar formato IPv4 básico
+        const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+        if (!ipv4Regex.test(clientIP)) {
+            return res.json({
+                error: 'Formato de IP não suportado para ping',
+                rawIP: rawClientIP,
+                cleanIP: clientIP
+            });
+        }
+
+        // Executar ping real usando comando do sistema
+        const { exec } = require('child_process');
+        const pingCount = req.query.count || 1; // Permitir especificar quantidade de pings
+        
+        // Comando ping com quantidade especificada
+        const pingCommand = `ping -c ${pingCount} -W 2 -i 0.5 ${clientIP}`;
+        
+        console.log(`🔧 Executando: ${pingCommand}`);
+        
+        exec(pingCommand, { timeout: 15000 }, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`❌ Erro no ping para ${clientIP}:`, error.message);
+                console.error(`📋 stderr:`, stderr);
+                return res.json({
+                    error: `Falha no ping: ${error.message}`,
+                    command: pingCommand,
+                    stderr: stderr,
+                    clientIP: clientIP
+                });
+            }
+
+            try {
+                console.log(`📋 Output do ping:\n${stdout}`);
+                
+                // Parse dos resultados do ping com múltiplos padrões
+                const lines = stdout.split('\n');
+                const pingTimes = [];
+                
+                // Padrão específico para capturar apenas tempos de ping individuais
+                lines.forEach(line => {
+                    // Capturar apenas linhas com resposta de ping individual
+                    // Formato: "64 bytes from X.X.X.X: icmp_seq=N ttl=XX time=N.NN ms"
+                    if (line.includes('bytes from') && line.includes('time=')) {
+                        const timeMatch = line.match(/time=([0-9.]+)\s*ms/i);
+                        if (timeMatch) {
+                            const time = parseFloat(timeMatch[1]);
+                            if (time > 0 && time < 10000) { // Sanity check (0-10s)
+                                pingTimes.push(time);
+                            }
+                        }
+                    }
+                });
+
+                console.log(`📊 Tempos extraídos: ${pingTimes.join(', ')}ms`);
+
+                if (pingTimes.length === 0) {
+                    return res.json({
+                        error: 'Nenhum tempo de ping capturado - verifique formato',
+                        clientIP: clientIP,
+                        rawOutput: stdout,
+                        command: pingCommand
+                    });
+                }
+
+                // Calcular estatísticas
+                const average = pingTimes.reduce((a, b) => a + b, 0) / pingTimes.length;
+                const min = Math.min(...pingTimes);
+                const max = Math.max(...pingTimes);
+                const sorted = [...pingTimes].sort((a, b) => a - b);
+                const median = sorted[Math.floor(sorted.length / 2)];
+
+                console.log(`📊 Ping real para ${clientIP} - Média: ${average.toFixed(2)}ms, Min: ${min}ms, Max: ${max}ms`);
+
+                res.json({
+                    success: true,
+                    clientIP: clientIP,
+                    latencies: pingTimes,
+                    statistics: {
+                        average: average,
+                        median: median,
+                        min: min,
+                        max: max,
+                        count: pingTimes.length
+                    }
+                });
+
+            } catch (parseError) {
+                console.error(`❌ Erro no parse do ping:`, parseError);
+                res.json({
+                    error: `Erro no parse: ${parseError.message}`,
+                    clientIP: clientIP,
+                    rawOutput: stdout
+                });
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Erro geral no ping real:', error);
+        res.status(500).json({
+            error: 'Erro interno do servidor',
+            details: error.message
+        });
+    }
+});
+
 // Endpoint para teste de upload - simplificado para evitar erros
 app.post('/upload', (req, res) => {
     // Sem validações, apenas confirma o recebimento

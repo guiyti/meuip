@@ -216,7 +216,7 @@ async function testDownloadSpeed() {
         }
 
         const avg = totalSpeed / successfulRounds;
-        const formattedValue = avg.toFixed(2);
+        const formattedValue = avg.toFixed(3);
         
         // Atualizar o elemento se existir
         if (element) {
@@ -284,7 +284,7 @@ async function testUploadSpeed() {
         }
 
         const avg = totalSpeed / successfulRounds;
-        const formattedValue = avg.toFixed(2);
+        const formattedValue = avg.toFixed(3);
         
         // Atualizar o elemento se existir
         if (element) {
@@ -304,87 +304,71 @@ async function testUploadSpeed() {
     }
 }
 
-// Teste de latência otimizado para precisão similar ao ping
+// Teste de latência usando PING REAL do servidor para o cliente (1 ping por vez)
 async function latencyTest() {
     try {
-        // Usar mais medições para maior precisão
-        const PING_COUNT = config.pingCount * 3; // 9-15 medições
-        const results = [];
-        let successfulPings = 0;
+        console.log('🏓 Executando ping real único (1 pacote)...');
         
-        for (let i = 0; i < PING_COUNT; i++) {
-            try {
-                // Usar Performance API para maior precisão (submilissegundos)
-                const start = performance.now();
-                
-                // Usar endpoint ultra-leve para latência
-                const response = await fetch('/latency', {
-                    method: 'GET',
-                    cache: 'no-cache',
-                    signal: AbortSignal.timeout(5000) // Timeout menor para latência
-                });
-                
-                if (response.ok) {
-                    const end = performance.now();
-                    const duration = end - start;
-                    
-                    // Filtrar medições obviamente incorretas (muito altas)
-                    if (duration > 0 && duration < 1000) { // Máximo 1 segundo
-                        results.push(duration);
-                        successfulPings++;
-                    }
-                }
-            } catch (error) {
-                // Não logar todos os erros para não poluir console
-                continue;
-            }
+        // Fazer UMA única chamada para ping com 1 pacote
+        const response = await fetchWithTimeoutAndRetry('/api/ping-real?count=1');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.latencies && data.latencies.length > 0) {
+            const latency = data.latencies[0]; // Primeiro (e único) valor
             
-            // Pequeno delay entre medições para evitar congestionamento
-            if (i < PING_COUNT - 1) {
-                await new Promise(resolve => setTimeout(resolve, 50));
+            console.log(`✅ Ping real executado: ${latency.toFixed(3)}ms`);
+            
+            return {
+                latency: latency, // Valor único da latência
+                success: true,
+                isPingReal: true,
+                clientIP: data.clientIP
+            };
+            
+        } else {
+            console.warn('⚠️ Ping real falhou:', data.error || 'Erro desconhecido');
+            
+            // Fallback para HTTP se ping real falhar
+            console.log('🔄 Usando fallback HTTP...');
+            
+            try {
+                const start = performance.now();
+                const httpResponse = await fetch('/ping', { cache: 'no-cache' });
+                if (httpResponse.ok) {
+                    const httpLatency = performance.now() - start;
+                    console.log(`📡 HTTP Fallback: ${httpLatency.toFixed(3)}ms`);
+                    
+                    return {
+                        latency: httpLatency,
+                        success: true,
+                        isPingReal: false // Flag para identificar fallback HTTP
+                    };
+                } else {
+                    throw new Error('HTTP response não ok');
+                }
+            } catch (httpError) {
+                console.error('❌ HTTP Fallback também falhou:', httpError);
+                return {
+                    latency: null,
+                    success: false,
+                    error: 'Ping e HTTP indisponíveis',
+                    isPingReal: false
+                };
             }
         }
         
-        if (successfulPings === 0) {
-            return {
-                average: null,
-                values: [],
-                error: 'Sem conectividade'
-            };
-        }
-        
-        // Estatísticas mais robustas
-        const sortedResults = [...results].sort((a, b) => a - b);
-        
-        // Remover 20% dos extremos (outliers)
-        const removeCount = Math.floor(sortedResults.length * 0.1);
-        const filteredResults = sortedResults.slice(removeCount, sortedResults.length - removeCount);
-        
-        // Calcular estatísticas
-        const average = filteredResults.reduce((sum, val) => sum + val, 0) / filteredResults.length;
-        const median = filteredResults[Math.floor(filteredResults.length / 2)];
-        const min = Math.min(...filteredResults);
-        const max = Math.max(...filteredResults);
-        
-        // Log estatísticas para debug
-        console.log(`📊 Latência - Amostras: ${successfulPings}, Média: ${average.toFixed(2)}ms, Mediana: ${median.toFixed(2)}ms, Min: ${min.toFixed(2)}ms, Max: ${max.toFixed(2)}ms`);
-        
-        return {
-            average: median, // Usar mediana em vez de média (mais resistente a outliers)
-            mean: average,
-            median: median,
-            min: min,
-            max: max,
-            values: results,
-            filteredValues: filteredResults,
-            successfulPings: successfulPings
-        };
     } catch (error) {
-        console.error('Erro no teste de latência:', error);
+        console.error('❌ Erro no teste de ping real:', error);
         return {
-            average: null,
-            values: [],
-            error: error.message
+            latency: null,
+            success: false,
+            error: error.message,
+            isPingReal: false
         };
     }
 }

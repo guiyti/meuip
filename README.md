@@ -23,6 +23,9 @@ Aplicação web desenvolvida para o **Núcleo de Tecnologia da Informação (NTI
 - **🔒 Detecção de VPN**: Identifica conexões via VPN institucional
 - **💾 Persistência**: Salva localização do usuário no localStorage
 - **📱 Responsivo**: Interface adaptável para desktop, tablet e mobile
+- **🎯 Precisão**: Todos os valores com 3 casas decimais
+- **💬 Tooltips**: Valores com unidades (ms, Mbps) sem índices
+- **⚡ Tempo Real**: Resultados aparecem imediatamente após cada teste
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -105,9 +108,12 @@ A aplicação estará disponível em:
 - **Cálculo**: Mesmo algoritmo do download
 
 ### ⚡ Teste de Latência
-- **Método**: 10 requisições HTTP consecutivas para `/ping`
+- **Método**: 12 comandos ping individuais (ICMP) para o IP do cliente
+- **Execução**: Ping real do servidor → cliente (não HTTP)
+- **Tempo Real**: Cada ping aparece imediatamente na interface
+- **Fallback**: HTTP para `/ping` se ping ICMP falhar
 - **Medição**: Round Trip Time (RTT) em milissegundos
-- **Resultado**: Média após remoção de outliers
+- **Resultado**: Média aritmética com 3 casas decimais
 
 ## 🔧 Endpoints da API
 
@@ -117,7 +123,9 @@ A aplicação estará disponível em:
 | `/api/server-info` | GET | IPs do servidor |
 | `/api/client-ips` | GET | IPs do cliente |
 | `/api/dual-stack-test` | GET | Teste de conectividade |
-| `/ping` | GET | Teste de latência |
+| `/api/ping-real` | GET | Ping ICMP real do servidor para cliente |
+| `/api/ping-real?count=N` | GET | Ping com N pacotes específicos |
+| `/ping` | GET | Teste de latência HTTP (fallback) |
 | `/upload` | POST | Recebimento de dados para teste |
 | `/testfile` | GET | Download do arquivo de teste (1MB) |
 
@@ -155,8 +163,12 @@ No arquivo `modules/network-tests.js`:
 ```javascript
 const config = {
     testFileSize: 1024 * 1024,  // 1MB
-    testRounds: 5,              // 5 rodadas por teste
-    pingCount: 10               // 10 pings para latência
+    testRounds: 1,              // 1 rodada por ponto
+    pingCount: 5,               // 5 pings base
+    timeoutMs: 45000,           // 45 segundos timeout
+    retryAttempts: 3,           // 3 tentativas para robustez
+    dataPoints: 12,             // 12 pontos para gráficos
+    testIntervalMs: 500         // 500ms entre testes individuais
 };
 ```
 
@@ -170,12 +182,44 @@ if (ipv4 && ipv4.includes('172.17.4.')) {
 }
 ```
 
+## 🏓 Sistema de Ping Individual
+
+### Como Funciona
+1. **Execução Individual**: 12 comandos `ping -c 1 -W 2 -i 0.5 [IP_CLIENTE]`
+2. **Tempo Real**: Cada ping aparece imediatamente na interface
+3. **Intervalo**: 500ms entre cada ping individual
+4. **Duração Total**: ~6 segundos para 12 pings
+
+### Exemplo de Execução
+```bash
+# Ping 1: 0.194ms → aparece no gráfico
+# Ping 2: 0.201ms → aparece no gráfico
+# Ping 3: 0.118ms → aparece no gráfico
+# ... (continua até 12)
+# Média final: 0.223ms (3 casas decimais)
+```
+
+### Fallback HTTP
+Se o ping ICMP falhar, usa automaticamente requisições HTTP para `/ping` como backup.
+
+### Testando via Console
+```javascript
+// Testar ping individual
+await window.testPingReal();
+
+// Testar pilha dupla
+await window.testDualStack();
+```
+
 ## 📊 Precisão dos Testes
 
-- **Dados Reais**: Transferência de 10MB total por sessão completa
+- **Dados Reais**: Transferência de 12MB total por sessão completa
 - **Sem Mocks**: Todos os testes usam transferência real de dados
 - **Algoritmos Padrão**: Seguem metodologias da indústria
-- **Múltiplas Medições**: 5 testes por métrica para precisão estatística
+- **Múltiplas Medições**: 12 testes por métrica para precisão estatística
+- **Precisão Numérica**: Todos os valores exibidos com 3 casas decimais
+- **Ping Real**: Latência ICMP autêntica (não HTTP) quando possível
+- **Tempo Real**: Resultados aparecem imediatamente após cada teste
 
 ## 🤝 Contribuindo
 
@@ -188,6 +232,20 @@ if (ipv4 && ipv4.includes('172.17.4.')) {
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 📝 Versionamento
+
+### v2.1.0 (Janeiro 2025)
+- ✅ **Ping Individual**: 12 comandos ping individuais em tempo real
+- ✅ **Precisão 3 Casas**: Todos os valores com 3 casas decimais
+- ✅ **Tooltips Melhorados**: Valores com unidades, sem índices
+- ✅ **Endpoint Flexível**: `/api/ping-real?count=N`
+
+### v2.0.0 (Janeiro 2025)
+- ✅ **Ping Real ICMP**: Latência autêntica servidor → cliente
+- ✅ **Robustez Aprimorada**: Configurações de produção sempre aplicadas
+- ✅ **Detecção VPN**: Localização automática para IP institucional
+- ✅ **Gráficos Melhorados**: 12 pontos de dados com atualização em tempo real
 
 ## 📞 Contato
 

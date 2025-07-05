@@ -811,9 +811,9 @@
             const validData = downloadData.filter(speed => speed > 0);
             if (validData.length > 0) {
                 const avgSpeed = validData.reduce((a, b) => a + b, 0) / validData.length;
-                document.getElementById('download-result').textContent = `${avgSpeed.toFixed(2)} Mbps`;
+                document.getElementById('download-result').textContent = `${avgSpeed.toFixed(3)} Mbps`;
             } else {
-                document.getElementById('download-result').textContent = '0.00 Mbps';
+                document.getElementById('download-result').textContent = '0.000 Mbps';
             }
         }
 
@@ -849,29 +849,32 @@
             const validData = uploadData.filter(speed => speed > 0);
             if (validData.length > 0) {
                 const avgSpeed = validData.reduce((a, b) => a + b, 0) / validData.length;
-                document.getElementById('upload-result').textContent = `${avgSpeed.toFixed(2)} Mbps`;
+                document.getElementById('upload-result').textContent = `${avgSpeed.toFixed(3)} Mbps`;
             } else {
-                document.getElementById('upload-result').textContent = '0.00 Mbps';
+                document.getElementById('upload-result').textContent = '0.000 Mbps';
             }
         }
 
         async function runLatencyTest() {
-            const dataPoints = 12; // Mais pontos para análise realista
+            const dataPoints = 12; // 12 pings individuais
+            const intervalMs = 500; // Delay entre pings
             const latencyData = [];
             
-            // Aproximadamente 6 segundos total: 12 pontos * 500ms = 6 segundos
-            const intervalMs = 500;
-
+            // Executar 12 pings individuais em tempo real
             for (let i = 0; i < dataPoints; i++) {
                 // Atualizar status de progresso
                 testStatus.textContent = `Testando latência... ${i + 1}/${dataPoints}`;
                 
+                // Executar ping individual
                 const result = await latencyTest();
-                if (result && typeof result.average === 'number' && result.average > 0) {
-                    latencyData.push(result.average);
+                
+                if (result && result.success && result.latency !== null) {
+                    latencyData.push(result.latency);
+                    console.log(`✅ Ping ${i + 1}: ${result.latency.toFixed(3)}ms`);
                 } else {
-                    // Adicionar 0 para manter gráfico consistente
-                    latencyData.push(0);
+                    // Adicionar null para manter consistência
+                    latencyData.push(null);
+                    console.warn(`⚠️ Ping ${i + 1} falhou: ${result.error || 'Erro desconhecido'}`);
                 }
                 
                 // Atualizar gráfico em tempo real
@@ -884,20 +887,26 @@
             }
             
             // Calcular estatísticas dos valores válidos
-            const validData = latencyData.filter(latency => latency > 0);
+            const validData = latencyData.filter(latency => latency !== null && latency > 0);
+            
             if (validData.length > 0) {
                 const avgLatency = validData.reduce((a, b) => a + b, 0) / validData.length;
                 const sortedData = [...validData].sort((a, b) => a - b);
                 const medianLatency = sortedData[Math.floor(sortedData.length / 2)];
                 const minLatency = Math.min(...validData);
+                const maxLatency = Math.max(...validData);
                 
-                // Exibir a mediana (mais representativa) como valor principal
-                document.getElementById('latency-result').textContent = `${medianLatency.toFixed(1)} ms`;
+                // Exibir a média com 3 casas decimais
+                document.getElementById('latency-result').textContent = `${avgLatency.toFixed(3)} ms`;
                 
-                // Log estatísticas detalhadas para debug
-                console.log(`📊 Latência Final - Mediana: ${medianLatency.toFixed(1)}ms, Média: ${avgLatency.toFixed(1)}ms, Mín: ${minLatency.toFixed(1)}ms`);
+                // Log estatísticas completas
+                const testType = validData.length > 0 && latencyData.find(d => d !== null) ? 
+                    (latencyData.some((_, i) => validData[i] !== null) ? 'Ping Real' : 'HTTP') : 'Misto';
+                const successRate = `${validData.length}/${dataPoints}`;
+                console.log(`📊 ${testType} (${successRate}) - Média: ${avgLatency.toFixed(3)}ms, Mediana: ${medianLatency.toFixed(3)}ms, Min: ${minLatency.toFixed(3)}ms, Max: ${maxLatency.toFixed(3)}ms`);
             } else {
                 document.getElementById('latency-result').textContent = 'Sem resposta';
+                console.warn('❌ Todos os pings falharam');
             }
         }
 
@@ -909,7 +918,35 @@
                 maintainAspectRatio: false,
                 plugins: { 
                     legend: { display: false },
-                    tooltip: { enabled: true }
+                    tooltip: { 
+                        enabled: true,
+                        displayColors: false,
+                        callbacks: {
+                            title: function() {
+                                return ''; // Remover título (índice)
+                            },
+                            label: function(context) {
+                                // Personalizar label baseado no tipo de gráfico
+                                const value = context.parsed.y;
+                                if (value === null || value === undefined) {
+                                    return 'Sem dados';
+                                }
+                                
+                                // Detectar tipo do gráfico baseado na cor
+                                const borderColor = context.dataset.borderColor;
+                                if (borderColor === 'rgb(5,103,46)' || borderColor === 'rgb(0,66,13)') {
+                                    // Gráfico de velocidade (download/upload)
+                                    return `${value.toFixed(3)} Mbps`;
+                                } else if (borderColor === 'rgb(255,210,0)') {
+                                    // Gráfico de latência
+                                    return `${value.toFixed(3)} ms`;
+                                } else {
+                                    // Fallback genérico
+                                    return `${value.toFixed(3)}`;
+                                }
+                            }
+                        }
+                    }
                 },
                 scales: {
                     x: { 
@@ -1008,62 +1045,34 @@
             }
         };
 
-        // Função de teste específica para latência - para comparar com ping
-        window.testLatency = async function(samples = 20) {
-            console.log(`🏓 Testando latência com ${samples} amostras...`);
-            console.log('⚡ Use esta função para comparar com: ping -c 20 [servidor]');
+        // Função de teste de ping real individual - para validação
+        window.testPingReal = async function() {
+            console.log('🏓 Testando ping real individual...');
             
             try {
-                const results = [];
+                const response = await fetch('/api/ping-real');
+                const data = await response.json();
                 
-                for (let i = 0; i < samples; i++) {
-                    const start = performance.now();
+                if (data.success) {
+                    console.log(`✅ Ping realizado com sucesso para ${data.clientIP}`);
+                    console.log(`📊 Latências individuais: ${data.latencies.join(', ')}ms`);
+                    console.log(`📈 Estatísticas:`);
+                    console.log(`   - Média: ${data.statistics.average.toFixed(2)}ms`);
+                    console.log(`   - Mediana: ${data.statistics.median.toFixed(2)}ms`);
+                    console.log(`   - Min: ${data.statistics.min}ms`);
+                    console.log(`   - Max: ${data.statistics.max}ms`);
+                    console.log(`💡 Compare com: ping -c 5 ${data.clientIP}`);
                     
-                    const response = await fetch('/latency', {
-                        method: 'GET',
-                        cache: 'no-cache'
-                    });
+                    return data;
+                } else {
+                    console.error(`❌ Erro no ping: ${data.error}`);
+                    console.log(`🔍 IP detectado: ${data.clientIP}`);
                     
-                    if (response.ok) {
-                        const end = performance.now();
-                        const latency = end - start;
-                        results.push(latency);
-                        console.log(`${i + 1}/${samples}: ${latency.toFixed(2)}ms`);
-                    }
-                    
-                    // Pequeno delay entre medições
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    return data;
                 }
                 
-                // Calcular estatísticas
-                const sorted = results.sort((a, b) => a - b);
-                const avg = results.reduce((a, b) => a + b, 0) / results.length;
-                const median = sorted[Math.floor(sorted.length / 2)];
-                const min = Math.min(...results);
-                const max = Math.max(...results);
-                const p90 = sorted[Math.floor(sorted.length * 0.9)];
-                
-                console.log('\n📊 Estatísticas de Latência:');
-                console.log(`📈 Amostras: ${results.length}`);
-                console.log(`📉 Mínima: ${min.toFixed(2)}ms`);
-                console.log(`📊 Mediana: ${median.toFixed(2)}ms`);
-                console.log(`📊 Média: ${avg.toFixed(2)}ms`);
-                console.log(`📈 P90: ${p90.toFixed(2)}ms`);
-                console.log(`📈 Máxima: ${max.toFixed(2)}ms`);
-                console.log('\n💡 Compare com: ping -c 20 [IP_DO_SERVIDOR]');
-                
-                return {
-                    samples: results.length,
-                    min: min,
-                    median: median,
-                    average: avg,
-                    p90: p90,
-                    max: max,
-                    rawData: results
-                };
-                
             } catch (error) {
-                console.error('❌ Erro no teste de latência:', error);
+                console.error('❌ Erro na requisição:', error);
                 return null;
             }
         };

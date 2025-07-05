@@ -2,15 +2,27 @@
 
 ## 🔧 **Status das Melhorias Implementadas**
 
-### ✅ **Concluído - Latência Otimizada (Jan 2025)**
-**Problema**: Latência do sistema web (4-6ms) muito diferente do ping ICMP (0.5-2ms)
-- ✅ **Performance API**: Usa `performance.now()` para precisão sub-milissegundo vs `Date.now()`
-- ✅ **Endpoint ultra-leve**: `/latency` otimizado com headers mínimos e resposta direta
-- ✅ **Mais medições**: 15 amostras por teste (5×3) para estatísticas robustas
-- ✅ **Filtros agressivos**: Remove 20% dos extremos (outliers) automaticamente
-- ✅ **Mediana vs média**: Usa mediana (mais resistente a outliers) como valor final
-- ✅ **Função de teste**: `window.testLatency(20)` para comparar diretamente com ping
-- ✅ **Estatísticas detalhadas**: Min, mediana, média, P90, max no console para debug
+### ✅ **Concluído - Ping Individual + Precisão Melhorada (Jan 2025)**
+**Solução definitiva**: **12 pings individuais** com exibição em tempo real
+- ✅ **Pings individuais**: Executa 12 comandos `ping -c 1 -W 2 -i 0.5 [IP_CLIENTE]`
+- ✅ **Tempo real**: Cada ping aparece imediatamente na interface
+- ✅ **Precisão aumentada**: Todos os valores com 3 casas decimais
+- ✅ **Tooltips melhorados**: Mostram valores com unidades (ms, Mbps) sem índices
+- ✅ **Experiência visual**: Gráfico se constrói progressivamente
+- ✅ **Endpoint flexível**: `/api/ping-real?count=N` para personalização
+- ✅ **Logs detalhados**: Cada ping individual é registrado no console
+- ✅ **Duração otimizada**: ~6 segundos total com intervalos de 500ms
+
+### ✅ **Concluído - Ping Real Otimizado (Jan 2025)**
+**Solução definitiva**: **UM ÚNICO** comando ping com 12 pacotes para máxima eficiência
+- ✅ **Comando único**: Executa `ping -c 12 -W 2 -i 0.5 [IP_CLIENTE]` uma vez
+- ✅ **IP real capturado**: Limpa IPv6-mapped (::ffff:X.X.X.X → X.X.X.X)
+- ✅ **Parse otimizado**: Extrai 12 valores individuais do output
+- ✅ **Gráfico direto**: Os 12 valores vão direto para o gráfico (sem loops)
+- ✅ **Fallback HTTP**: Se ping falhar, usa HTTP como backup
+- ✅ **Execução rápida**: ~6 segundos total (vs 60+ segundos do sistema anterior)
+- ✅ **Debug integrado**: `window.testPingReal()` para teste individual
+- ✅ **Resultado autêntico**: Latência ICMP real idêntica ao comando manual
 
 ## Resumo das Correções
 
@@ -55,16 +67,22 @@
    - Interface de progresso
    - Testes mais robustos
    - Tratamento de erros aprimorado
+   - **NOVO**: Função `runLatencyTest()` com 12 pings individuais
+   - **NOVO**: Tooltips melhorados com valores e unidades
+   - **NOVO**: Precisão de 3 casas decimais em todos os valores
 
 2. **`modules/network-tests.js`**
    - Função `fetchWithTimeoutAndRetry()`
    - Configurações dinâmicas
    - Melhor tratamento de falhas
    - Validação de resultados
+   - **NOVO**: Função `latencyTest()` modificada para ping individual
+   - **NOVO**: Retorno com precisão de 3 casas decimais
 
 3. **`server.js`**
    - Endpoint `/api/server-info` com configurações de ambiente
    - Detecção automática de produção vs desenvolvimento
+   - **NOVO**: Parâmetro `count` no endpoint `/api/ping-real`
 
 ## Filosofia de Configuração Única
 
@@ -86,6 +104,7 @@ O sistema não faz mais distinção entre ambientes, aplicando sempre configura�
 
 ## Testes Recomendados
 
+### Testes Básicos
 1. ✅ **Testar localmente**: Verificar se configurações robustas funcionam em localhost
 2. ✅ **Testar remotamente**: Confirmar robustez em servidor com alta latência
 3. ✅ **Testar VPN**: Verificar comportamento com IP de VPN (172.17.4.x) - localização automática
@@ -94,11 +113,29 @@ O sistema não faz mais distinção entre ambientes, aplicando sempre configura�
 6. ✅ **Testar duração**: Verificar se cada teste demora ~6 segundos com 12 pontos
 7. ✅ **Testar progresso**: Confirmar que status mostra "X/12" durante execução
 
-## Resumo da Correção
+### Testes das Melhorias Recentes
+8. ✅ **Ping individual**: Verificar se cada ping aparece imediatamente na interface
+9. ✅ **Precisão 3 casas**: Confirmar que todos os valores mostram 3 casas decimais
+10. ✅ **Tooltips**: Verificar se tooltips mostram valores com unidades corretas
+11. ✅ **Endpoint flexível**: Testar `/api/ping-real?count=1` via console
+12. ✅ **Logs detalhados**: Verificar se cada ping é registrado no console
+13. ✅ **Gráfico progressivo**: Confirmar que gráfico se constrói ponto a ponto
+
+## Resumo das Melhorias Recentes (Jan 2025)
+
+✅ **PING INDIVIDUAL**: Mudança de 1 comando com 12 pacotes → 12 comandos individuais
+✅ **TEMPO REAL**: Cada ping aparece imediatamente na interface
+✅ **PRECISÃO AUMENTADA**: Todos os valores com 3 casas decimais (0.194 ms, 25.450 Mbps)
+✅ **TOOLTIPS MELHORADOS**: Valores com unidades, sem índices desnecessários
+✅ **EXPERIÊNCIA VISUAL**: Gráfico se constrói progressivamente
+✅ **ENDPOINT FLEXÍVEL**: `/api/ping-real?count=N` para personalização
+✅ **LOGS DETALHADOS**: Cada ping individual registrado no console
+
+## Resumo da Correção Anterior
 
 ✅ **PROBLEMA RESOLVIDO**: Eliminada detecção problemática de ambiente
 ✅ **SEMPRE ROBUSTO**: Configurações de produção aplicadas sempre
 ✅ **GRÁFICOS REALISTAS**: 12 pontos de dados com duração de ~6 segundos
 ✅ **EXPERIÊNCIA PREMIUM**: Usuário sente que está sendo feita análise profunda
 
-As melhorias tornam o sistema consistentemente robusto, independente do ambiente de execução. 
+As melhorias tornam o sistema consistentemente robusto, independente do ambiente de execução, com exibição em tempo real e precisão aprimorada. 
