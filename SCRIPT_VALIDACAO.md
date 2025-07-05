@@ -15,12 +15,13 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 
 - **Múltiplas medições**: 12 testes por padrão (configurável)
 - **Análise estatística**: Calcula mediana igual à interface web
-- **Retry automático**: Tenta novamente em caso de falha
+- **Timeouts otimizados**: 15s (download) / 30s (upload)
+- **Compatibilidade**: Detecção automática macOS/Linux
 - **Cache-busting**: Evita cache com timestamps únicos
-- **Timeout**: 15s para evitar travamento
 - **Auto-delete**: Remove-se após execução (sempre versão atualizada)
 - **Progress visual**: Mostra progresso colorido
 - **Taxa de sucesso**: Mostra quantos testes foram bem-sucedidos
+- **Debug avançado**: Mostra detalhes em caso de falha
 
 ## 🛠️ Uso Avançado
 
@@ -115,6 +116,10 @@ curl -s -X POST --data-binary @- -w "%{speed_upload}" \
 
 **Latência:**
 ```bash
+# macOS
+ping -c 12 -t 5 meuip.ufabc.int.br
+
+# Linux
 ping -c 12 -W 2 meuip.ufabc.int.br
 ```
 

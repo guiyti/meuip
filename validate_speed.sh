@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-# Script de Validação de Velocidade UFABCnet
+# Script de Validação de Velocidade UFABCnet - v1.1
 # =============================================================================
 # Este script replica os testes da interface web usando curl e ping
 # Para comparação direta com os resultados da interface web
@@ -17,6 +17,7 @@
 TESTS=${1:-12}  # Número de testes (padrão: 12, como na interface)
 HOST="meuip.ufabc.int.br"
 TIMEOUT=15
+UPLOAD_TIMEOUT=30  # Timeout maior para upload
 SCRIPT_NAME="$0"
 
 # Cores para output
@@ -70,11 +71,11 @@ calculate_stats() {
 
 # Banner
 echo -e "${BLUE}===============================================${NC}"
-echo -e "${BLUE}  Validação de Velocidade UFABCnet - v1.0${NC}"
+echo -e "${BLUE}  Validação de Velocidade UFABCnet - v1.1${NC}"
 echo -e "${BLUE}===============================================${NC}"
 echo -e "Host: ${YELLOW}$HOST${NC}"
 echo -e "Testes por métrica: ${YELLOW}$TESTS${NC}"
-echo -e "Timeout: ${YELLOW}${TIMEOUT}s${NC}"
+echo -e "Timeout: ${YELLOW}${TIMEOUT}s / ${UPLOAD_TIMEOUT}s${NC}"
 echo
 
 # Verificar dependências
@@ -137,8 +138,8 @@ upload_failures=0
 for i in $(seq 1 $TESTS); do
     echo -ne "   Teste $i/$TESTS... "
     
-    # Executar upload com timeout (compatível com macOS)
-    result=$(dd if=/dev/zero bs=1024 count=1024 2>/dev/null | curl -s -X POST --data-binary @- -w '%{speed_upload}' --max-time $TIMEOUT "http://$HOST/upload?cb=$(date +%s%N)" 2>/dev/null)
+    # Executar upload com timeout maior (compatível com macOS)
+    result=$(dd if=/dev/zero bs=1024 count=1024 2>/dev/null | curl -s -X POST --data-binary @- -w '%{speed_upload}' --max-time $UPLOAD_TIMEOUT "http://$HOST/upload?cb=$(date +%s%N)" 2>/dev/null)
     
     if [ $? -eq 0 ] && [ -n "$result" ] && [ "$(echo "$result > 0" | bc)" -eq 1 ]; then
         # Converter para Mbps
@@ -150,8 +151,8 @@ for i in $(seq 1 $TESTS); do
         echo -e "${RED}✗ Falhou${NC}"
     fi
     
-    # Delay maior para upload
-    sleep 1.0
+    # Delay maior para upload para evitar sobrecarga
+    sleep 1.5
 done
 
 # Calcular estatísticas de upload
@@ -171,26 +172,43 @@ echo
 # =============================================================================
 echo -e "${GREEN}🏓 Iniciando teste de Latência...${NC}"
 
-# Executar ping
-ping_result=$(ping -c $TESTS -W 2 $HOST 2>/dev/null)
+# Executar ping com parâmetros compatíveis com macOS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    ping_result=$(ping -c $TESTS -t 5 $HOST 2>/dev/null)
+else
+    # Linux
+    ping_result=$(ping -c $TESTS -W 2 $HOST 2>/dev/null)
+fi
 
-if [ $? -eq 0 ]; then
-    # Extrair tempos de ping
-    ping_times=$(echo "$ping_result" | grep -o 'time=[0-9.]*' | cut -d'=' -f2)
+ping_exit_code=$?
+
+if [ $ping_exit_code -eq 0 ]; then
+    # Extrair tempos de ping - regex mais robusta
+    ping_times=$(echo "$ping_result" | grep -o 'time=[0-9]*\.[0-9]*' | cut -d'=' -f2)
     
     if [ -n "$ping_times" ]; then
         # Converter para array
         ping_array=($ping_times)
-        latency_median=$(calculate_stats "${ping_array[@]}")
-        ping_success_rate="${#ping_array[@]}/$TESTS"
-        echo -e "   ${BLUE}📊 Latência - Mediana: ${latency_median} ms (Taxa de sucesso: $ping_success_rate)${NC}"
+        
+        # Verificar se temos dados válidos
+        if [ ${#ping_array[@]} -gt 0 ]; then
+            latency_median=$(calculate_stats "${ping_array[@]}")
+            ping_success_rate="${#ping_array[@]}/$TESTS"
+            echo -e "   ${BLUE}📊 Latência - Mediana: ${latency_median} ms (Taxa de sucesso: $ping_success_rate)${NC}"
+        else
+            latency_median="0.000"
+            echo -e "   ${RED}❌ Latência - Array de tempos vazio${NC}"
+        fi
     else
         latency_median="0.000"
         echo -e "   ${RED}❌ Latência - Não foi possível extrair tempos${NC}"
+        echo -e "   ${YELLOW}🔍 Debug: Saída do ping:${NC}"
+        echo "$ping_result" | head -3
     fi
 else
     latency_median="0.000"
-    echo -e "   ${RED}❌ Latência - Ping falhou${NC}"
+    echo -e "   ${RED}❌ Latência - Ping falhou (código: $ping_exit_code)${NC}"
 fi
 
 echo
@@ -212,4 +230,4 @@ echo -e "   3. Diferenças de ±5-15% são normais"
 echo -e "   4. A interface web usa retry + análise estatística"
 echo
 
-# Cleanup automático será executado pelo trap EXIT 
+# Cleanup automático será executado pelo trap EXIT
