@@ -3,7 +3,7 @@
 <div align="center">
   <img src="https://nti.ufabc.edu.br/wp-content/themes/NTI-theme/images/logo2.png" alt="UFABC NTI Logo" width="200"/>
   
-  **Sistema de Teste de Velocidade da Rede Interna da UFABC**
+  **Sistema de Teste de Velocidade da UFABCnet**
   
   [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
   [![License](https://img.shields.io/badge/License-MIT-blue.svg)](#licença)
@@ -12,7 +12,7 @@
 
 ## 📋 Sobre o Projeto
 
-Aplicação web desenvolvida para o **Núcleo de Tecnologia da Informação (NTI)** da **Universidade Federal do ABC (UFABC)** para diagnóstico e monitoramento da performance da rede interna.
+Aplicação web desenvolvida para o **Núcleo de Tecnologia da Informação (NTI)** da **Universidade Federal do ABC (UFABC)** para diagnóstico e monitoramento da performance da UFABCnet.
 
 ### 🎯 Funcionalidades
 
@@ -145,7 +145,7 @@ A aplicação estará disponível em:
 
 ### Badges de Conexão
 
-- **🌐 Rede Interna**: Gradiente verde, ícone de rede
+- **🌐 UFABCnet**: Gradiente verde, ícone de rede
 - **🛡️ VPN Institucional**: Gradiente dourado, ícone de escudo
 
 ## 🔧 Configuração

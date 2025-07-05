@@ -1,4 +1,4 @@
-# Frontend - UFABC Network Speed Test
+# Frontend - UFABCnet Speed Test
 
 ## 📁 Arquivos Frontend
 
