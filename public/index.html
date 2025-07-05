@@ -738,6 +738,158 @@
                             </div>
                         </div>
 
+                        <!-- Usuários Avançados -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAdvanced">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced">
+                                    <i class="fas fa-terminal text-dark me-2"></i>Para Usuários Avançados
+                                </button>
+                            </h2>
+                            <div id="collapseAdvanced" class="accordion-collapse collapse" data-bs-parent="#explanationAccordion">
+                                <div class="accordion-body">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Para especialistas em rede:</strong> Use os comandos abaixo para validar e comparar os resultados da interface web.
+                                    </div>
+
+                                    <h6>🔽 Teste de Download via Curl:</h6>
+                                    <div class="bg-dark text-light p-3 rounded mb-3">
+                                        <code class="text-success">curl -s -o /dev/null -w "%{time_total},%{size_download},%{speed_download}" http://meuip.ufabc.int.br/testfile</code>
+                                    </div>
+                                    <p><strong>Saída esperada:</strong> <code>0.125,1048576,67108864</code></p>
+                                    <p><strong>Cálculo:</strong> 67.108.864 bytes/s = <strong>67.1 Mbps</strong></p>
+
+                                    <h6 class="mt-4">🔼 Teste de Upload via Curl:</h6>
+                                    <div class="bg-dark text-light p-3 rounded mb-3">
+                                        <code class="text-success">dd if=/dev/zero bs=1024 count=1024 2>/dev/null | curl -s -X POST --data-binary @- -w "%{time_total},%{size_upload},%{speed_upload}" http://meuip.ufabc.int.br/upload</code>
+                                    </div>
+                                    <p><strong>Saída esperada:</strong> <code>0.156,1048576,53687091</code></p>
+                                    <p><strong>Cálculo:</strong> 53.687.091 bytes/s = <strong>53.7 Mbps</strong></p>
+
+                                    <h6 class="mt-4">🏓 Teste de Latência via Ping:</h6>
+                                    <div class="bg-dark text-light p-3 rounded mb-3">
+                                        <code class="text-success">ping -c 12 meuip.ufabc.int.br</code>
+                                    </div>
+                                    <p><strong>Resultado:</strong> Média dos tempos RTT</p>
+
+                                    <h6 class="mt-4">📊 Script Profissional de Validação:</h6>
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-download me-2"></i>
+                                        <strong>Download do Script:</strong> 
+                                        <a href="/validate_speed.sh" class="alert-link" download>validate_speed.sh</a>
+                                    </div>
+                                    
+                                    <h6 class="mt-3">🚀 Como usar o script:</h6>
+                                    <div class="bg-dark text-light p-3 rounded mb-3">
+<pre class="text-light mb-0"># Baixar, executar e remover automaticamente
+curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh
+
+# Teste customizado (20 medições)
+curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh 20</pre>
+                                    </div>
+                                    
+                                    <div class="alert alert-info small">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Auto-Delete:</strong> O script se remove automaticamente após a execução para garantir que sempre seja baixada a versão mais atualizada.
+                                    </div>
+
+                                    <h6 class="mt-3">📋 Funcionalidades do Script:</h6>
+                                    <ul class="small">
+                                        <li><strong>Múltiplas medições:</strong> Executa 12 testes por padrão (configurável)</li>
+                                        <li><strong>Análise estatística:</strong> Calcula mediana (igual à interface web)</li>
+                                        <li><strong>Retry automático:</strong> Tenta novamente em caso de falha</li>
+                                        <li><strong>Cache-busting:</strong> Evita cache com timestamps únicos</li>
+                                        <li><strong>Timeout:</strong> Evita travamento em conexões lentas</li>
+                                        <li><strong>Auto-delete:</strong> Remove-se após execução (sempre versão atualizada)</li>
+                                        <li><strong>Progress visual:</strong> Mostra progresso colorido</li>
+                                    </ul>
+
+                                    <h6 class="mt-3">📝 Exemplo de Saída:</h6>
+                                    <div class="bg-dark text-light p-3 rounded mb-3 small">
+<pre class="text-light mb-0">===============================================
+  Validação de Velocidade UFABCnet - v1.0
+===============================================
+Host: meuip.ufabc.int.br
+Testes por métrica: 12
+
+🔽 Iniciando teste de Download...
+   Teste 1/12... ✓ 67.234 Mbps
+   Teste 2/12... ✓ 65.891 Mbps
+   ...
+   📊 Download - Mediana: 66.542 Mbps (Taxa de sucesso: 12/12)
+
+🔼 Iniciando teste de Upload...
+   Teste 1/12... ✓ 53.876 Mbps
+   ...
+   📊 Upload - Mediana: 52.341 Mbps (Taxa de sucesso: 11/12)
+
+🏓 Iniciando teste de Latência...
+   📊 Latência - Mediana: 12.4 ms (Taxa de sucesso: 12/12)
+
+===============================================
+              RELATÓRIO FINAL
+===============================================
+📥 Download:  66.542 Mbps
+📤 Upload:    52.341 Mbps
+🏓 Latência:  12.4 ms
+
+🧹 Limpando arquivo temporário...
+✅ Script removido com sucesso
+💡 Para executar novamente, baixe a versão atualizada:
+   curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh</pre>
+                                    </div>
+
+                                    <h6 class="mt-4">⚠️ Diferenças Esperadas:</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="small text-muted">🌐 INTERFACE WEB:</h6>
+                                            <ul class="small">
+                                                <li><strong>Método:</strong> HTTP fetch() via JavaScript</li>
+                                                <li><strong>Timer:</strong> performance.now() (alta precisão)</li>
+                                                <li><strong>Headers:</strong> Navegador + User-Agent</li>
+                                                <li><strong>Conexão:</strong> HTTP/1.1 keep-alive</li>
+                                                <li><strong>Retry:</strong> 3 tentativas automáticas</li>
+                                                <li><strong>Estatística:</strong> Mediana de 12 testes</li>
+                                                <li><strong>Cache:</strong> Cache-busting forçado</li>
+                                                <li><strong>Overhead:</strong> Engine JavaScript + DOM</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="small text-muted">💻 CURL/SCRIPT:</h6>
+                                            <ul class="small">
+                                                <li><strong>Método:</strong> Curl nativo (C/libcurl)</li>
+                                                <li><strong>Timer:</strong> Timer interno do curl</li>
+                                                <li><strong>Headers:</strong> Mínimos (Host, User-Agent)</li>
+                                                <li><strong>Conexão:</strong> HTTP/1.1 nova conexão</li>
+                                                <li><strong>Retry:</strong> Script com retry customizado</li>
+                                                <li><strong>Estatística:</strong> Mediana de N testes</li>
+                                                <li><strong>Cache:</strong> Cache-busting via timestamp</li>
+                                                <li><strong>Overhead:</strong> Mínimo (nativo)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-info mt-3">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Diferenças Típicas:</strong>
+                                        <ul class="mb-0 small">
+                                            <li><strong>±5-15%:</strong> Variação normal entre métodos</li>
+                                            <li><strong>Download:</strong> Curl pode ser 5-10% mais rápido (menos overhead)</li>
+                                            <li><strong>Upload:</strong> Interface web pode ser mais rápida (keep-alive)</li>
+                                            <li><strong>Latência:</strong> Ping sempre mais preciso que HTTP</li>
+                                            <li><strong>Primeira execução:</strong> Curl pode ser mais lento (cold start)</li>
+                                            <li><strong>Múltiplas execuções:</strong> Resultados devem convergir</li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="alert alert-warning mt-3">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>Validação Profissional:</strong> Execute o script múltiplas vezes e compare as medianas. Diferenças >20% podem indicar problemas de rede ou configuração.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
 
                     </div>
                 </div>

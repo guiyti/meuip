@@ -37,6 +37,13 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Servir script de validação para usuários avançados
+app.get('/validate_speed.sh', (req, res) => {
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', 'attachment; filename="validate_speed.sh"');
+    res.sendFile(path.join(__dirname, 'validate_speed.sh'));
+});
+
 // API para obter informações do servidor
 app.get('/api/server-info', (req, res) => {
     res.json(getServerIPs());
