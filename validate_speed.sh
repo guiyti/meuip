@@ -42,13 +42,40 @@ cleanup() {
 # Configurar trap para cleanup
 trap cleanup EXIT
 
-# Função para calcular estatísticas
-calculate_stats() {
+# Função para calcular estatísticas de velocidade (sem casas decimais)
+calculate_speed_stats() {
     local values=("$@")
     local count=${#values[@]}
     
     if [ $count -eq 0 ]; then
         echo "0"
+        return
+    fi
+    
+    # Ordenar valores
+    IFS=$'\n' sorted=($(sort -n <<<"${values[*]}"))
+    unset IFS
+    
+    # Calcular mediana
+    local middle=$((count / 2))
+    if [ $((count % 2)) -eq 0 ]; then
+        # Número par de elementos
+        local median=$(echo "scale=0; (${sorted[$((middle-1))]} + ${sorted[$middle]}) / 2" | bc)
+    else
+        # Número ímpar de elementos
+        local median=${sorted[$middle]}
+    fi
+    
+    echo $median
+}
+
+# Função para calcular estatísticas de latência (com 3 casas decimais)
+calculate_latency_stats() {
+    local values=("$@")
+    local count=${#values[@]}
+    
+    if [ $count -eq 0 ]; then
+        echo "0.000"
         return
     fi
     
@@ -103,8 +130,8 @@ for i in $(seq 1 $TESTS); do
     result=$(curl -s -o /dev/null -w "%{speed_download}" --max-time $TIMEOUT "http://$HOST/testfile?cb=$(date +%s%N)" 2>/dev/null)
     
     if [ $? -eq 0 ] && [ -n "$result" ] && [ "$(echo "$result > 0" | bc)" -eq 1 ]; then
-        # Converter para Mbps
-        speed_mbps=$(echo "scale=3; $result * 8 / 1000000" | bc)
+        # Converter para Mbps (sem casas decimais)
+        speed_mbps=$(echo "scale=0; $result * 8 / 1000000" | bc)
         download_speeds+=($speed_mbps)
         echo -e "${GREEN}✓ $speed_mbps Mbps${NC}"
     else
@@ -118,11 +145,11 @@ done
 
 # Calcular estatísticas de download
 if [ ${#download_speeds[@]} -gt 0 ]; then
-    download_median=$(calculate_stats "${download_speeds[@]}")
+    download_median=$(calculate_speed_stats "${download_speeds[@]}")
     download_success_rate="${#download_speeds[@]}/$TESTS"
     echo -e "   ${BLUE}📊 Download - Mediana: ${download_median} Mbps (Taxa de sucesso: $download_success_rate)${NC}"
 else
-    download_median="0.000"
+    download_median="0"
     echo -e "   ${RED}❌ Download - Todos os testes falharam${NC}"
 fi
 
@@ -142,8 +169,8 @@ for i in $(seq 1 $TESTS); do
     result=$(dd if=/dev/zero bs=1024 count=1024 2>/dev/null | curl -s -X POST --data-binary @- -w '%{speed_upload}' --max-time $UPLOAD_TIMEOUT "http://$HOST/upload?cb=$(date +%s%N)" 2>/dev/null)
     
     if [ $? -eq 0 ] && [ -n "$result" ] && [ "$(echo "$result > 0" | bc)" -eq 1 ]; then
-        # Converter para Mbps
-        speed_mbps=$(echo "scale=3; $result * 8 / 1000000" | bc)
+        # Converter para Mbps (sem casas decimais)
+        speed_mbps=$(echo "scale=0; $result * 8 / 1000000" | bc)
         upload_speeds+=($speed_mbps)
         echo -e "${GREEN}✓ $speed_mbps Mbps${NC}"
     else
@@ -157,11 +184,11 @@ done
 
 # Calcular estatísticas de upload
 if [ ${#upload_speeds[@]} -gt 0 ]; then
-    upload_median=$(calculate_stats "${upload_speeds[@]}")
+    upload_median=$(calculate_speed_stats "${upload_speeds[@]}")
     upload_success_rate="${#upload_speeds[@]}/$TESTS"
     echo -e "   ${BLUE}📊 Upload - Mediana: ${upload_median} Mbps (Taxa de sucesso: $upload_success_rate)${NC}"
 else
-    upload_median="0.000"
+    upload_median="0"
     echo -e "   ${RED}❌ Upload - Todos os testes falharam${NC}"
 fi
 
@@ -193,7 +220,7 @@ if [ $ping_exit_code -eq 0 ]; then
         
         # Verificar se temos dados válidos
         if [ ${#ping_array[@]} -gt 0 ]; then
-            latency_median=$(calculate_stats "${ping_array[@]}")
+            latency_median=$(calculate_latency_stats "${ping_array[@]}")
             ping_success_rate="${#ping_array[@]}/$TESTS"
             echo -e "   ${BLUE}📊 Latência - Mediana: ${latency_median} ms (Taxa de sucesso: $ping_success_rate)${NC}"
         else

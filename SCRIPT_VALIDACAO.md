@@ -15,6 +15,7 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 
 - **Múltiplas medições**: 12 testes por padrão (configurável)
 - **Análise estatística**: Calcula mediana igual à interface web
+- **Precisão formatada**: Download/Upload (inteiros), Latência (3 decimais)
 - **Timeouts otimizados**: 15s (download) / 30s (upload)
 - **Compatibilidade**: Detecção automática macOS/Linux
 - **Cache-busting**: Evita cache com timestamps únicos
@@ -41,11 +42,11 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 ### Exemplo de Saída:
 ```
 ===============================================
-  Validação de Velocidade UFABCnet - v1.0
+  Validação de Velocidade UFABCnet - v1.1
 ===============================================
-🔽 Download - Mediana: 66.542 Mbps (Taxa de sucesso: 12/12)
-🔼 Upload - Mediana: 52.341 Mbps (Taxa de sucesso: 11/12)
-🏓 Latência - Mediana: 12.4 ms (Taxa de sucesso: 12/12)
+🔽 Download - Mediana: 67 Mbps (Taxa de sucesso: 12/12)
+🔼 Upload - Mediana: 52 Mbps (Taxa de sucesso: 11/12)
+🏓 Latência - Mediana: 12.406 ms (Taxa de sucesso: 12/12)
 
 🧹 Limpando arquivo temporário...
 ✅ Script removido com sucesso

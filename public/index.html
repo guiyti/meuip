@@ -757,14 +757,14 @@
                                         <code class="text-success">curl -s -o /dev/null -w "%{time_total},%{size_download},%{speed_download}" http://meuip.ufabc.int.br/testfile</code>
                                     </div>
                                     <p><strong>Saída esperada:</strong> <code>0.125,1048576,67108864</code></p>
-                                    <p><strong>Cálculo:</strong> 67.108.864 bytes/s = <strong>67.1 Mbps</strong></p>
+                                    <p><strong>Cálculo:</strong> 67.108.864 bytes/s = <strong>67 Mbps</strong></p>
 
                                     <h6 class="mt-4">🔼 Teste de Upload via Curl:</h6>
                                     <div class="bg-dark text-light p-3 rounded mb-3">
                                         <code class="text-success">dd if=/dev/zero bs=1024 count=1024 2>/dev/null | curl -s -X POST --data-binary @- -w "%{time_total},%{size_upload},%{speed_upload}" http://meuip.ufabc.int.br/upload</code>
                                     </div>
                                     <p><strong>Saída esperada:</strong> <code>0.156,1048576,53687091</code></p>
-                                    <p><strong>Cálculo:</strong> 53.687.091 bytes/s = <strong>53.7 Mbps</strong></p>
+                                    <p><strong>Cálculo:</strong> 53.687.091 bytes/s = <strong>53 Mbps</strong></p>
 
                                     <h6 class="mt-4">🏓 Teste de Latência via Ping:</h6>
                                     <div class="bg-dark text-light p-3 rounded mb-3">
@@ -813,25 +813,25 @@ Host: meuip.ufabc.int.br
 Testes por métrica: 12
 
 🔽 Iniciando teste de Download...
-   Teste 1/12... ✓ 67.234 Mbps
-   Teste 2/12... ✓ 65.891 Mbps
+   Teste 1/12... ✓ 67 Mbps
+   Teste 2/12... ✓ 66 Mbps
    ...
-   📊 Download - Mediana: 66.542 Mbps (Taxa de sucesso: 12/12)
+   📊 Download - Mediana: 67 Mbps (Taxa de sucesso: 12/12)
 
 🔼 Iniciando teste de Upload...
-   Teste 1/12... ✓ 53.876 Mbps
+   Teste 1/12... ✓ 54 Mbps
    ...
-   📊 Upload - Mediana: 52.341 Mbps (Taxa de sucesso: 11/12)
+   📊 Upload - Mediana: 52 Mbps (Taxa de sucesso: 11/12)
 
 🏓 Iniciando teste de Latência...
-   📊 Latência - Mediana: 12.4 ms (Taxa de sucesso: 12/12)
+   📊 Latência - Mediana: 12.406 ms (Taxa de sucesso: 12/12)
 
 ===============================================
               RELATÓRIO FINAL
 ===============================================
-📥 Download:  66.542 Mbps
-📤 Upload:    52.341 Mbps
-🏓 Latência:  12.4 ms
+📥 Download:  67 Mbps
+📤 Upload:    52 Mbps
+🏓 Latência:  12.406 ms
 
 🧹 Limpando arquivo temporário...
 ✅ Script removido com sucesso
