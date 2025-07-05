@@ -2,6 +2,15 @@
 
 ## 🔧 **Status das Melhorias Implementadas**
 
+### ✅ **Concluído - Correção Arquitetural Cliente-Servidor (Jan 2025)**
+**Problema resolvido**: Curl no servidor testava velocidade servidor↔servidor, não cliente↔servidor
+- ✅ **HTTP Direto**: Download e upload agora usam `fetch()` + `performance.now()` no cliente
+- ✅ **Teste Real**: Mede velocidade real da conexão do usuário
+- ✅ **Arquitetura Correta**: Cliente testa velocidade com servidor, não servidor consigo mesmo
+- ✅ **Modal Atualizado**: Explicações refletem HTTP direto em vez de curl
+- ✅ **Funções Debug**: `testDownloadHTTP()` e `testUploadHTTP()` para validação
+- ✅ **Compatibilidade Conceptual**: Agora é equivalente ao curl manual que você executa
+
 ### ✅ **Concluído - Ping Individual + Precisão Melhorada (Jan 2025)**
 **Solução definitiva**: **12 pings individuais** com exibição em tempo real
 - ✅ **Pings individuais**: Executa 12 comandos `ping -c 1 -W 2 -i 0.5 [IP_CLIENTE]`
