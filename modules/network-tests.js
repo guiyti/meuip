@@ -167,52 +167,51 @@ async function testClientIPv6(serverIPv6) {
     }
 }
 
-// Teste de velocidade de download via curl (método padrão)
+// Teste de velocidade de download via HTTP direto (método correto)
 async function testDownloadSpeed() {
     try {
         const elementId = arguments[0] || 'download';
         const element = document.getElementById(elementId);
         
         if (element) {
-            element.textContent = 'Testando curl...';
+            element.textContent = 'Testando...';
         }
         
-        console.log('🔄 Executando download via curl...');
+        console.log('🔄 Executando download via HTTP direto...');
         
-        // Fazer requisição para o endpoint curl
-        const response = await fetchWithTimeoutAndRetry('/api/download-curl?size=1024&rounds=1');
+        // Fazer download direto do arquivo de teste
+        const startTime = performance.now();
+        const response = await fetch('/testfile', {
+            method: 'GET',
+            cache: 'no-cache'
+        });
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
         
-        const data = await response.json();
+        // Ler todo o conteúdo para medir a velocidade real
+        const blob = await response.blob();
+        const endTime = performance.now();
         
-        if (data.success && data.statistics) {
-            const speed = data.statistics.average;
-            const formattedValue = speed.toFixed(3);
-            
-            console.log(`✅ Download curl: ${formattedValue} Mbps`);
-            
-            if (element) {
-                element.textContent = formattedValue + ' Mbps';
-                element.className = 'success';
-            }
-            
-            return parseFloat(formattedValue);
-        } else {
-            console.warn('⚠️ Download curl falhou:', data.error || 'Erro desconhecido');
-            
-            if (element) {
-                element.textContent = 'Teste indisponível';
-                element.className = 'error';
-            }
-            
-            return 0;
+        // Calcular velocidade
+        const durationSeconds = (endTime - startTime) / 1000;
+        const sizeBytes = blob.size;
+        const speedMbps = (sizeBytes * 8) / (durationSeconds * 1_000_000);
+        
+        const formattedValue = speedMbps.toFixed(3);
+        
+        console.log(`✅ Download HTTP: ${formattedValue} Mbps (${sizeBytes} bytes em ${durationSeconds.toFixed(3)}s)`);
+        
+        if (element) {
+            element.textContent = formattedValue + ' Mbps';
+            element.className = 'success';
         }
         
+        return parseFloat(formattedValue);
+        
     } catch (error) {
-        console.error('❌ Erro no download curl:', error);
+        console.error('❌ Erro no download HTTP:', error);
         
         const element = document.getElementById(arguments[0] || 'download');
         if (element) {
@@ -224,52 +223,55 @@ async function testDownloadSpeed() {
     }
 }
 
-// Teste de velocidade de upload via curl (método padrão)
+// Teste de velocidade de upload via HTTP direto (método correto)
 async function testUploadSpeed() {
     try {
         const elementId = arguments[0] || 'upload';
         const element = document.getElementById(elementId);
         
         if (element) {
-            element.textContent = 'Testando curl...';
+            element.textContent = 'Testando...';
         }
         
-        console.log('🔄 Executando upload via curl...');
+        console.log('🔄 Executando upload via HTTP direto...');
         
-        // Fazer requisição para o endpoint curl
-        const response = await fetchWithTimeoutAndRetry('/api/upload-curl?size=1024&rounds=1');
+        // Criar dados de teste (1MB)
+        const testData = new Uint8Array(1024 * 1024);
+        
+        // Fazer upload direto dos dados
+        const startTime = performance.now();
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: testData,
+            headers: {
+                'Content-Type': 'application/octet-stream'
+            },
+            cache: 'no-cache'
+        });
+        const endTime = performance.now();
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
         
-        const data = await response.json();
+        // Calcular velocidade
+        const durationSeconds = (endTime - startTime) / 1000;
+        const sizeBytes = testData.length;
+        const speedMbps = (sizeBytes * 8) / (durationSeconds * 1_000_000);
         
-        if (data.success && data.statistics) {
-            const speed = data.statistics.average;
-            const formattedValue = speed.toFixed(3);
-            
-            console.log(`✅ Upload curl: ${formattedValue} Mbps`);
-            
-            if (element) {
-                element.textContent = formattedValue + ' Mbps';
-                element.className = 'success';
-            }
-            
-            return parseFloat(formattedValue);
-        } else {
-            console.warn('⚠️ Upload curl falhou:', data.error || 'Erro desconhecido');
-            
-            if (element) {
-                element.textContent = 'Teste indisponível';
-                element.className = 'error';
-            }
-            
-            return 0;
+        const formattedValue = speedMbps.toFixed(3);
+        
+        console.log(`✅ Upload HTTP: ${formattedValue} Mbps (${sizeBytes} bytes em ${durationSeconds.toFixed(3)}s)`);
+        
+        if (element) {
+            element.textContent = formattedValue + ' Mbps';
+            element.className = 'success';
         }
         
+        return parseFloat(formattedValue);
+        
     } catch (error) {
-        console.error('❌ Erro no upload curl:', error);
+        console.error('❌ Erro no upload HTTP:', error);
         
         const element = document.getElementById(arguments[0] || 'upload');
         if (element) {

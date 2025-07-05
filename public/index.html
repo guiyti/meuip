@@ -648,8 +648,9 @@
                             </h2>
                             <div id="collapseOverview" class="accordion-collapse collapse show" data-bs-parent="#explanationAccordion">
                                 <div class="accordion-body">
-                                    <p>Os testes de velocidade são realizados através do <strong>Curl</strong>, uma ferramenta de linha de comando que mede precisamente a performance da sua conexão de rede.</p>
-                                    <p>Todos os testes são executados no servidor para garantir medições consistentes e precisas.</p>
+                                    <p>Os testes de velocidade são realizados através de <strong>HTTP direto</strong> entre seu navegador e o servidor para medir precisamente a performance da sua conexão de rede.</p>
+                                    <p>Todos os testes são executados no <strong>cliente</strong> (seu navegador) medindo o tempo real de transferência entre sua máquina e o servidor.</p>
+                                    <p>Esta abordagem testa a velocidade real da sua conexão, não a velocidade do servidor ou loopback local.</p>
                                 </div>
                             </div>
                         </div>
@@ -690,21 +691,21 @@
                             </h2>
                             <div id="collapseDownload" class="accordion-collapse collapse" data-bs-parent="#explanationAccordion">
                                 <div class="accordion-body">
-                                    <h6>Comando utilizado:</h6>
-                                    <code>curl -s -o /dev/null -w "%{time_total},%{size_download},%{speed_download}" http://meuip.ufabc.int.br/testfile</code>
+                                    <h6>Método utilizado:</h6>
+                                    <code>fetch('/testfile') + performance.now()</code>
                                     
                                     <h6 class="mt-3">Processo:</h6>
                                     <ol>
-                                        <li>Curl baixa um arquivo de teste de 1MB do servidor</li>
-                                        <li>Descarta o conteúdo (-o /dev/null)</li>
-                                        <li>Mede tempo total, bytes baixados e velocidade</li>
-                                        <li>Retorna métricas precisas</li>
+                                        <li>Navegador baixa arquivo de teste de 1MB do servidor</li>
+                                        <li>Mede tempo usando performance.now() (alta precisão)</li>
+                                        <li>Calcula velocidade: (bytes × 8) / (tempo × 1.000.000)</li>
+                                        <li>Testa velocidade real cliente-servidor</li>
                                     </ol>
                                     
-                                    <h6 class="mt-3">Resultado exemplo:</h6>
-                                    <p><code>0.125,1048576,67.108864</code></p>
-                                    <p>Interpretação: 0.125 segundos, 1.048.576 bytes, 67.108.864 bytes/s</p>
-                                    <p>Convertido para Megabits: <strong>67.1 Mbps</strong></p>
+                                    <h6 class="mt-3">Exemplo de cálculo:</h6>
+                                    <p><code>1.048.576 bytes em 0.125 segundos</code></p>
+                                    <p>Velocidade: (1.048.576 × 8) / (0.125 × 1.000.000)</p>
+                                    <p>Resultado: <strong>67.1 Mbps</strong></p>
                                 </div>
                             </div>
                         </div>
@@ -718,21 +719,21 @@
                             </h2>
                             <div id="collapseUpload" class="accordion-collapse collapse" data-bs-parent="#explanationAccordion">
                                 <div class="accordion-body">
-                                    <h6>Comando utilizado:</h6>
-                                    <code>dd if=/dev/zero bs=1024 count=1024 | curl -s -X POST --data-binary @- -w "%{time_total},%{size_upload},%{speed_upload}" http://meuip.ufabc.int.br/upload</code>
+                                    <h6>Método utilizado:</h6>
+                                    <code>fetch('/upload', {method: 'POST', body: testData}) + performance.now()</code>
                                     
                                     <h6 class="mt-3">Processo:</h6>
                                     <ol>
-                                        <li>dd gera dados de 1MB (1024 blocos de 1KB)</li>
-                                        <li>Curl envia os dados via POST</li>
-                                        <li>Mede tempo total, bytes enviados e velocidade</li>
-                                        <li>Servidor recebe e confirma recebimento</li>
+                                        <li>JavaScript cria dados de teste de 1MB (Uint8Array)</li>
+                                        <li>Navegador envia dados via POST para servidor</li>
+                                        <li>Mede tempo usando performance.now() (alta precisão)</li>
+                                        <li>Testa velocidade real cliente-servidor</li>
                                     </ol>
                                     
-                                    <h6 class="mt-3">Resultado exemplo:</h6>
-                                    <p><code>0.156,1048576,53.687091</code></p>
-                                    <p>Interpretação: 0.156 segundos, 1.048.576 bytes, 53.687.091 bytes/s</p>
-                                    <p>Convertido para Megabits: <strong>53.7 Mbps</strong></p>
+                                    <h6 class="mt-3">Exemplo de cálculo:</h6>
+                                    <p><code>1.048.576 bytes em 0.156 segundos</code></p>
+                                    <p>Velocidade: (1.048.576 × 8) / (0.156 × 1.000.000)</p>
+                                    <p>Resultado: <strong>53.7 Mbps</strong></p>
                                 </div>
                             </div>
                         </div>
@@ -1289,60 +1290,90 @@
             }
         };
 
-        // Função de teste de download curl - para validação
-        window.testDownloadCurl = async function() {
-            console.log('🔄 Testando download curl...');
+        // Função de teste de download HTTP direto - para validação
+        window.testDownloadHTTP = async function() {
+            console.log('🔄 Testando download HTTP direto...');
             
             try {
-                const response = await fetch('/api/download-curl?size=1024&rounds=1');
-                const data = await response.json();
+                const startTime = performance.now();
+                const response = await fetch('/testfile', {
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
                 
-                if (data.success) {
-                    console.log(`✅ Download curl realizado com sucesso para ${data.clientIP}`);
-                    console.log(`📊 Velocidade: ${data.statistics.average.toFixed(3)} Mbps`);
-                    console.log(`📈 Estatísticas:`);
-                    console.log(`   - Média: ${data.statistics.average.toFixed(3)} Mbps`);
-                    console.log(`   - Min: ${data.statistics.min.toFixed(3)} Mbps`);
-                    console.log(`   - Max: ${data.statistics.max.toFixed(3)} Mbps`);
-                    console.log(`   - Sucessos: ${data.statistics.count}/${data.statistics.total}`);
-                    
-                    return data;
-                } else {
-                    console.error(`❌ Erro no download curl: ${data.error}`);
-                    return data;
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
                 }
                 
+                const blob = await response.blob();
+                const endTime = performance.now();
+                
+                const durationSeconds = (endTime - startTime) / 1000;
+                const sizeBytes = blob.size;
+                const speedMbps = (sizeBytes * 8) / (durationSeconds * 1_000_000);
+                
+                console.log(`✅ Download HTTP realizado com sucesso`);
+                console.log(`📊 Velocidade: ${speedMbps.toFixed(3)} Mbps`);
+                console.log(`📈 Detalhes:`);
+                console.log(`   - Tamanho: ${sizeBytes} bytes`);
+                console.log(`   - Tempo: ${durationSeconds.toFixed(3)} segundos`);
+                console.log(`   - Velocidade: ${speedMbps.toFixed(3)} Mbps`);
+                
+                return {
+                    success: true,
+                    sizeBytes,
+                    durationSeconds,
+                    speedMbps
+                };
+                
             } catch (error) {
-                console.error('❌ Erro na requisição download curl:', error);
+                console.error('❌ Erro na requisição download HTTP:', error);
                 return null;
             }
         };
 
-        // Função de teste de upload curl - para validação
-        window.testUploadCurl = async function() {
-            console.log('🔄 Testando upload curl...');
+        // Função de teste de upload HTTP direto - para validação
+        window.testUploadHTTP = async function() {
+            console.log('🔄 Testando upload HTTP direto...');
             
             try {
-                const response = await fetch('/api/upload-curl?size=1024&rounds=1');
-                const data = await response.json();
+                const testData = new Uint8Array(1024 * 1024);
                 
-                if (data.success) {
-                    console.log(`✅ Upload curl realizado com sucesso para ${data.clientIP}`);
-                    console.log(`📊 Velocidade: ${data.statistics.average.toFixed(3)} Mbps`);
-                    console.log(`📈 Estatísticas:`);
-                    console.log(`   - Média: ${data.statistics.average.toFixed(3)} Mbps`);
-                    console.log(`   - Min: ${data.statistics.min.toFixed(3)} Mbps`);
-                    console.log(`   - Max: ${data.statistics.max.toFixed(3)} Mbps`);
-                    console.log(`   - Sucessos: ${data.statistics.count}/${data.statistics.total}`);
-                    
-                    return data;
-                } else {
-                    console.error(`❌ Erro no upload curl: ${data.error}`);
-                    return data;
+                const startTime = performance.now();
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: testData,
+                    headers: {
+                        'Content-Type': 'application/octet-stream'
+                    },
+                    cache: 'no-cache'
+                });
+                const endTime = performance.now();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
                 }
                 
+                const durationSeconds = (endTime - startTime) / 1000;
+                const sizeBytes = testData.length;
+                const speedMbps = (sizeBytes * 8) / (durationSeconds * 1_000_000);
+                
+                console.log(`✅ Upload HTTP realizado com sucesso`);
+                console.log(`📊 Velocidade: ${speedMbps.toFixed(3)} Mbps`);
+                console.log(`📈 Detalhes:`);
+                console.log(`   - Tamanho: ${sizeBytes} bytes`);
+                console.log(`   - Tempo: ${durationSeconds.toFixed(3)} segundos`);
+                console.log(`   - Velocidade: ${speedMbps.toFixed(3)} Mbps`);
+                
+                return {
+                    success: true,
+                    sizeBytes,
+                    durationSeconds,
+                    speedMbps
+                };
+                
             } catch (error) {
-                console.error('❌ Erro na requisição upload curl:', error);
+                console.error('❌ Erro na requisição upload HTTP:', error);
                 return null;
             }
         };

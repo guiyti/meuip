@@ -317,9 +317,10 @@ app.get('/api/download-curl', async (req, res) => {
             clientIP = clientIP.substring(7);
         }
         
-        // Construir URL para download - usar domínio público
-        const publicHost = 'meuip.ufabc.int.br';
-        const downloadUrl = `http://${publicHost}/testfile`;
+        // Construir URL para download - usar servidor local para teste cliente-servidor
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const downloadUrl = `${protocol}://${host}/testfile`;
         
         // Comando curl para download com medição de tempo
         const curlCommand = `curl -s -o /dev/null -w "%{time_total},%{size_download},%{speed_download}" "${downloadUrl}"`;
@@ -429,9 +430,10 @@ app.get('/api/upload-curl', async (req, res) => {
             clientIP = clientIP.substring(7);
         }
         
-        // Construir URL para upload - usar domínio público
-        const publicHost = 'meuip.ufabc.int.br';
-        const uploadUrl = `http://${publicHost}/upload`;
+        // Construir URL para upload - usar servidor local para teste cliente-servidor
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const uploadUrl = `${protocol}://${host}/upload`;
         
         // Comando curl para upload com medição de tempo
         // Usando dd para gerar dados do tamanho especificado
