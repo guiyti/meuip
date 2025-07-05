@@ -167,139 +167,116 @@ async function testClientIPv6(serverIPv6) {
     }
 }
 
-// Teste de velocidade de download
+// Teste de velocidade de download via curl (método padrão)
 async function testDownloadSpeed() {
     try {
         const elementId = arguments[0] || 'download';
         const element = document.getElementById(elementId);
         
-        // Verificar se o elemento existe antes de tentar modificá-lo
         if (element) {
-            element.textContent = 'Testando...';
+            element.textContent = 'Testando curl...';
         }
         
-        let totalSpeed = 0;
-        let successfulRounds = 0;
+        console.log('🔄 Executando download via curl...');
         
-        for (let i = 0; i < config.testRounds; i++) {
-            try {
-                const start = Date.now();
-                const response = await fetchWithTimeoutAndRetry('/testfile');
-                
-                if (!response.ok) {
-                    console.warn(`Teste download falhou na rodada ${i + 1}: ${response.status}`);
-                    continue;
-                }
-                
-                await response.blob();
-                const duration = (Date.now() - start) / 1000;
-                
-                // Verificar se a duração é válida
-                if (duration > 0 && duration < config.timeoutMs / 1000) {
-                    const bits = config.testFileSize * 8;
-                    const speed = bits / duration / 1_000_000; // Mbps
-                    totalSpeed += speed;
-                    successfulRounds++;
-                }
-            } catch (error) {
-                console.warn(`Erro na rodada ${i + 1} do teste download:`, error.message);
-                continue;
-            }
+        // Fazer requisição para o endpoint curl
+        const response = await fetchWithTimeoutAndRetry('/api/download-curl?size=1024&rounds=1');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
-
-        if (successfulRounds === 0) {
+        
+        const data = await response.json();
+        
+        if (data.success && data.statistics) {
+            const speed = data.statistics.average;
+            const formattedValue = speed.toFixed(3);
+            
+            console.log(`✅ Download curl: ${formattedValue} Mbps`);
+            
             if (element) {
-                element.textContent = 'Sem conectividade';
+                element.textContent = formattedValue + ' Mbps';
+                element.className = 'success';
+            }
+            
+            return parseFloat(formattedValue);
+        } else {
+            console.warn('⚠️ Download curl falhou:', data.error || 'Erro desconhecido');
+            
+            if (element) {
+                element.textContent = 'Teste indisponível';
                 element.className = 'error';
             }
+            
             return 0;
         }
-
-        const avg = totalSpeed / successfulRounds;
-        const formattedValue = avg.toFixed(3);
         
-        // Atualizar o elemento se existir
-        if (element) {
-            element.textContent = formattedValue + ' Mbps';
-            element.className = 'success';
-        }
-        
-        return parseFloat(formattedValue);
     } catch (error) {
+        console.error('❌ Erro no download curl:', error);
+        
         const element = document.getElementById(arguments[0] || 'download');
         if (element) {
             element.textContent = 'Erro no teste';
             element.className = 'error';
         }
-        console.error('Erro teste download:', error);
+        
         return 0;
     }
 }
 
-// Teste de velocidade de upload
+// Teste de velocidade de upload via curl (método padrão)
 async function testUploadSpeed() {
     try {
         const elementId = arguments[0] || 'upload';
         const element = document.getElementById(elementId);
-        if (element) element.textContent = 'Testando...';
         
-        let totalSpeed = 0;
-        let successfulRounds = 0;
-        const data = new Uint8Array(config.testFileSize);
-
-        for (let i = 0; i < config.testRounds; i++) {
-            try {
-                const start = Date.now();
-                const response = await fetchWithTimeoutAndRetry('/upload', {
-                    method: 'POST',
-                    body: data
-                });
-                
-                if (!response.ok) {
-                    console.warn(`Teste upload falhou na rodada ${i + 1}: ${response.status}`);
-                    continue;
-                }
-                
-                const duration = (Date.now() - start) / 1000;
-                
-                // Verificar se a duração é válida
-                if (duration > 0 && duration < config.timeoutMs / 1000) {
-                    const bits = config.testFileSize * 8;
-                    const speed = bits / duration / 1_000_000; // Mbps
-                    totalSpeed += speed;
-                    successfulRounds++;
-                }
-            } catch (error) {
-                console.warn(`Erro na rodada ${i + 1} do teste upload:`, error.message);
-                continue;
-            }
+        if (element) {
+            element.textContent = 'Testando curl...';
         }
-
-        if (successfulRounds === 0) {
+        
+        console.log('🔄 Executando upload via curl...');
+        
+        // Fazer requisição para o endpoint curl
+        const response = await fetchWithTimeoutAndRetry('/api/upload-curl?size=1024&rounds=1');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.statistics) {
+            const speed = data.statistics.average;
+            const formattedValue = speed.toFixed(3);
+            
+            console.log(`✅ Upload curl: ${formattedValue} Mbps`);
+            
             if (element) {
-                element.textContent = 'Sem conectividade';
+                element.textContent = formattedValue + ' Mbps';
+                element.className = 'success';
+            }
+            
+            return parseFloat(formattedValue);
+        } else {
+            console.warn('⚠️ Upload curl falhou:', data.error || 'Erro desconhecido');
+            
+            if (element) {
+                element.textContent = 'Teste indisponível';
                 element.className = 'error';
             }
+            
             return 0;
         }
-
-        const avg = totalSpeed / successfulRounds;
-        const formattedValue = avg.toFixed(3);
         
-        // Atualizar o elemento se existir
-        if (element) {
-            element.textContent = formattedValue + ' Mbps';
-            element.className = 'success';
-        }
-        
-        return parseFloat(formattedValue);
     } catch (error) {
+        console.error('❌ Erro no upload curl:', error);
+        
         const element = document.getElementById(arguments[0] || 'upload');
         if (element) {
             element.textContent = 'Erro no teste';
             element.className = 'error';
         }
-        console.error('Erro teste upload:', error);
+        
         return 0;
     }
 }
@@ -373,6 +350,10 @@ async function latencyTest() {
     }
 }
 
+
+
+
+
 // Inicializar todos os testes
 async function initTests() {
     try {
@@ -404,3 +385,5 @@ export {
     initTests,
     config
 };
+
+

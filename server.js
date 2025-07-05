@@ -277,10 +277,11 @@ app.get('/api/ping-real', async (req, res) => {
     }
 });
 
-// Endpoint para teste de upload - simplificado para evitar erros
+// Endpoint para teste de upload via curl - recebe dados binários
 app.post('/upload', (req, res) => {
-    // Sem validações, apenas confirma o recebimento
-    res.status(200).send('Upload recebido');
+    // Recebimento de dados para teste de upload via curl
+    // Resposta vazia para não interferir com curl metrics
+    res.status(200).end();
 });
 
 // Endpoint para log de debug
@@ -295,6 +296,263 @@ app.post('/api/debug-log', express.json(), (req, res) => {
         }
         res.status(200).send('Log received');
     });
+});
+
+// Endpoint para teste de download via curl
+app.get('/api/download-curl', async (req, res) => {
+    try {
+        const { exec } = require('child_process');
+        const fileSize = req.query.size || 1024; // KB
+        const testRounds = req.query.rounds || 1;
+        
+        console.log(`🔄 Teste download curl - ${fileSize}KB, ${testRounds} rodadas`);
+        
+        // Capturar o IP real do cliente para logs
+        let clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                      req.headers['x-real-ip'] ||
+                      req.connection.remoteAddress ||
+                      req.socket.remoteAddress;
+        
+        if (clientIP && clientIP.startsWith('::ffff:')) {
+            clientIP = clientIP.substring(7);
+        }
+        
+        // Construir URL para download
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const downloadUrl = `${protocol}://${host}/testfile`;
+        
+        // Comando curl para download com medição de tempo
+        const curlCommand = `curl -s -o /dev/null -w "%{time_total},%{size_download},%{speed_download}" "${downloadUrl}"`;
+        
+        console.log(`🔧 Executando: ${curlCommand}`);
+        
+        const results = [];
+        let successfulRounds = 0;
+        
+        for (let i = 0; i < testRounds; i++) {
+            await new Promise((resolve) => {
+                exec(curlCommand, { timeout: 30000 }, (error, stdout, stderr) => {
+                    if (error) {
+                        console.error(`❌ Erro curl download rodada ${i + 1}:`, error.message);
+                        results.push(null);
+                        resolve();
+                        return;
+                    }
+                    
+                    try {
+                        const [timeTotal, sizeDownload, speedDownload] = stdout.trim().split(',');
+                        const timeTotalSec = parseFloat(timeTotal);
+                        const sizeBytes = parseFloat(sizeDownload);
+                        const speedBytesPerSec = parseFloat(speedDownload);
+                        
+                        // Converter para Mbps
+                        const speedMbps = (speedBytesPerSec * 8) / 1_000_000;
+                        
+                        if (speedMbps > 0 && timeTotalSec > 0) {
+                            results.push({
+                                time: timeTotalSec,
+                                size: sizeBytes,
+                                speed: speedMbps,
+                                round: i + 1
+                            });
+                            successfulRounds++;
+                            console.log(`✅ Curl download rodada ${i + 1}: ${speedMbps.toFixed(3)} Mbps (${timeTotalSec.toFixed(3)}s)`);
+                        } else {
+                            results.push(null);
+                            console.warn(`⚠️ Curl download rodada ${i + 1}: valores inválidos`);
+                        }
+                    } catch (parseError) {
+                        console.error(`❌ Erro parse curl rodada ${i + 1}:`, parseError);
+                        results.push(null);
+                    }
+                    
+                    resolve();
+                });
+            });
+        }
+        
+        if (successfulRounds === 0) {
+            return res.json({
+                error: 'Nenhum teste curl de download foi bem-sucedido',
+                command: curlCommand,
+                clientIP: clientIP
+            });
+        }
+        
+        const validResults = results.filter(r => r !== null);
+        const speeds = validResults.map(r => r.speed);
+        const averageSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+        const minSpeed = Math.min(...speeds);
+        const maxSpeed = Math.max(...speeds);
+        
+        console.log(`📊 Curl download para ${clientIP} - Média: ${averageSpeed.toFixed(3)} Mbps, Min: ${minSpeed.toFixed(3)} Mbps, Max: ${maxSpeed.toFixed(3)} Mbps`);
+        
+        res.json({
+            success: true,
+            method: 'curl',
+            clientIP: clientIP,
+            results: validResults,
+            statistics: {
+                average: averageSpeed,
+                min: minSpeed,
+                max: maxSpeed,
+                count: successfulRounds,
+                total: testRounds
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro geral no teste curl download:', error);
+        res.status(500).json({
+            error: 'Erro interno do servidor',
+            details: error.message
+        });
+    }
+});
+
+// Endpoint para teste de upload via curl
+app.get('/api/upload-curl', async (req, res) => {
+    try {
+        const { exec } = require('child_process');
+        const fileSize = req.query.size || 1024; // KB
+        const testRounds = req.query.rounds || 1;
+        
+        console.log(`🔄 Teste upload curl - ${fileSize}KB, ${testRounds} rodadas`);
+        
+        // Capturar o IP real do cliente para logs
+        let clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                      req.headers['x-real-ip'] ||
+                      req.connection.remoteAddress ||
+                      req.socket.remoteAddress;
+        
+        if (clientIP && clientIP.startsWith('::ffff:')) {
+            clientIP = clientIP.substring(7);
+        }
+        
+        // Construir URL para upload
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const uploadUrl = `${protocol}://${host}/upload`;
+        
+        // Comando curl para upload com medição de tempo
+        // Usando dd para gerar dados do tamanho especificado
+        const curlCommand = `dd if=/dev/zero bs=1024 count=${fileSize} 2>/dev/null | curl -s -X POST -H "Content-Type: application/octet-stream" --data-binary @- -w "%{time_total},%{size_upload},%{speed_upload}" "${uploadUrl}"`;
+        
+        console.log(`🔧 Executando: ${curlCommand}`);
+        
+        const results = [];
+        let successfulRounds = 0;
+        
+        for (let i = 0; i < testRounds; i++) {
+            await new Promise((resolve) => {
+                exec(curlCommand, { timeout: 30000 }, (error, stdout, stderr) => {
+                    if (error) {
+                        console.error(`❌ Erro curl upload rodada ${i + 1}:`, error.message);
+                        results.push(null);
+                        resolve();
+                        return;
+                    }
+                    
+                    try {
+                        // Extrair métricas do curl (geralmente no final do output)
+                        const output = stdout.trim();
+                        let measurements;
+                        
+                        // Tentar diferentes padrões para extrair as métricas
+                        if (output.includes(',')) {
+                            // Se tem vírgulas, pegar a última parte com métricas
+                            const parts = output.split(/[,\s]+/);
+                            if (parts.length >= 3) {
+                                // Pegar os últimos 3 valores numéricos
+                                const numericParts = parts.filter(p => /^\d+(\.\d+)?$/.test(p)).slice(-3);
+                                if (numericParts.length === 3) {
+                                    measurements = numericParts.join(',');
+                                }
+                            }
+                        }
+                        
+                        // Fallback: usar regex para extrair métricas do formato esperado
+                        if (!measurements) {
+                            const metricsMatch = output.match(/(\d+\.?\d*),(\d+),(\d+\.?\d*)$/);
+                            if (metricsMatch) {
+                                measurements = `${metricsMatch[1]},${metricsMatch[2]},${metricsMatch[3]}`;
+                            }
+                        }
+                        
+                        if (!measurements) {
+                            throw new Error('Não foi possível extrair métricas do curl');
+                        }
+                        
+                        const [timeTotal, sizeUpload, speedUpload] = measurements.split(',');
+                        
+                        const timeTotalSec = parseFloat(timeTotal);
+                        const sizeBytes = parseFloat(sizeUpload);
+                        const speedBytesPerSec = parseFloat(speedUpload);
+                        
+                        // Converter para Mbps
+                        const speedMbps = (speedBytesPerSec * 8) / 1_000_000;
+                        
+                        if (speedMbps > 0 && timeTotalSec > 0) {
+                            results.push({
+                                time: timeTotalSec,
+                                size: sizeBytes,
+                                speed: speedMbps,
+                                round: i + 1
+                            });
+                            successfulRounds++;
+                            console.log(`✅ Curl upload rodada ${i + 1}: ${speedMbps.toFixed(3)} Mbps (${timeTotalSec.toFixed(3)}s)`);
+                        } else {
+                            results.push(null);
+                            console.warn(`⚠️ Curl upload rodada ${i + 1}: valores inválidos`);
+                        }
+                    } catch (parseError) {
+                        console.error(`❌ Erro parse curl rodada ${i + 1}:`, parseError);
+                        results.push(null);
+                    }
+                    
+                    resolve();
+                });
+            });
+        }
+        
+        if (successfulRounds === 0) {
+            return res.json({
+                error: 'Nenhum teste curl de upload foi bem-sucedido',
+                command: curlCommand,
+                clientIP: clientIP
+            });
+        }
+        
+        const validResults = results.filter(r => r !== null);
+        const speeds = validResults.map(r => r.speed);
+        const averageSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+        const minSpeed = Math.min(...speeds);
+        const maxSpeed = Math.max(...speeds);
+        
+        console.log(`📊 Curl upload para ${clientIP} - Média: ${averageSpeed.toFixed(3)} Mbps, Min: ${minSpeed.toFixed(3)} Mbps, Max: ${maxSpeed.toFixed(3)} Mbps`);
+        
+        res.json({
+            success: true,
+            method: 'curl',
+            clientIP: clientIP,
+            results: validResults,
+            statistics: {
+                average: averageSpeed,
+                min: minSpeed,
+                max: maxSpeed,
+                count: successfulRounds,
+                total: testRounds
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro geral no teste curl upload:', error);
+        res.status(500).json({
+            error: 'Erro interno do servidor',
+            details: error.message
+        });
+    }
 });
 
 // Inicialização do servidor
