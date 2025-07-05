@@ -167,120 +167,178 @@ async function testClientIPv6(serverIPv6) {
     }
 }
 
-// Teste de velocidade de download via HTTP direto (método correto)
+// Teste de velocidade de download via HTTP direto (método robusto)
 async function testDownloadSpeed() {
-    try {
-        const elementId = arguments[0] || 'download';
-        const element = document.getElementById(elementId);
-        
-        if (element) {
-            element.textContent = 'Testando...';
+    const maxRetries = 3;
+    const timeoutMs = 15000; // 15 segundos timeout
+    const minValidSpeed = 0.1; // 0.1 Mbps mínimo considerado válido
+    const maxValidSpeed = 10000; // 10 Gbps máximo considerado válido
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`🔄 Download HTTP (tentativa ${attempt}/${maxRetries})...`);
+            
+            // Cache-busting com timestamp único
+            const cacheBuster = Date.now() + Math.random().toString(36).substr(2, 9);
+            const url = `/testfile?cb=${cacheBuster}`;
+            
+            // Controller para timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+            
+            const startTime = performance.now();
+            const response = await fetch(url, {
+                method: 'GET',
+                cache: 'no-cache',
+                signal: controller.signal,
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            // Verificar se o conteúdo é válido
+            const contentLength = response.headers.get('content-length');
+            if (contentLength && parseInt(contentLength) < 1000) {
+                throw new Error(`Arquivo muito pequeno: ${contentLength} bytes`);
+            }
+            
+            // Ler conteúdo e medir
+            const blob = await response.blob();
+            const endTime = performance.now();
+            
+            // Validar medição
+            const durationSeconds = (endTime - startTime) / 1000;
+            const sizeBytes = blob.size;
+            
+            if (durationSeconds < 0.001) {
+                throw new Error(`Duração muito pequena: ${durationSeconds}s`);
+            }
+            
+            if (sizeBytes < 1000) {
+                throw new Error(`Tamanho inválido: ${sizeBytes} bytes`);
+            }
+            
+            // Calcular velocidade
+            const speedMbps = (sizeBytes * 8) / (durationSeconds * 1_000_000);
+            
+            // Validar velocidade (detecção de outliers)
+            if (speedMbps < minValidSpeed || speedMbps > maxValidSpeed) {
+                throw new Error(`Velocidade fora do range válido: ${speedMbps.toFixed(3)} Mbps`);
+            }
+            
+            const formattedValue = speedMbps.toFixed(3);
+            console.log(`✅ Download HTTP: ${formattedValue} Mbps (${sizeBytes} bytes, ${durationSeconds.toFixed(3)}s, tentativa ${attempt})`);
+            
+            return parseFloat(formattedValue);
+            
+        } catch (error) {
+            console.warn(`⚠️ Download tentativa ${attempt} falhou:`, error.message);
+            
+            if (attempt === maxRetries) {
+                console.error('❌ Todas as tentativas de download falharam');
+                return null; // Retorna null em vez de 0 para indicar falha
+            }
+            
+            // Aguardar antes da próxima tentativa (backoff exponencial)
+            await new Promise(resolve => setTimeout(resolve, attempt * 1000));
         }
-        
-        console.log('🔄 Executando download via HTTP direto...');
-        
-        // Fazer download direto do arquivo de teste
-        const startTime = performance.now();
-        const response = await fetch('/testfile', {
-            method: 'GET',
-            cache: 'no-cache'
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        // Ler todo o conteúdo para medir a velocidade real
-        const blob = await response.blob();
-        const endTime = performance.now();
-        
-        // Calcular velocidade
-        const durationSeconds = (endTime - startTime) / 1000;
-        const sizeBytes = blob.size;
-        const speedMbps = (sizeBytes * 8) / (durationSeconds * 1_000_000);
-        
-        const formattedValue = speedMbps.toFixed(3);
-        
-        console.log(`✅ Download HTTP: ${formattedValue} Mbps (${sizeBytes} bytes em ${durationSeconds.toFixed(3)}s)`);
-        
-        if (element) {
-            element.textContent = formattedValue + ' Mbps';
-            element.className = 'success';
-        }
-        
-        return parseFloat(formattedValue);
-        
-    } catch (error) {
-        console.error('❌ Erro no download HTTP:', error);
-        
-        const element = document.getElementById(arguments[0] || 'download');
-        if (element) {
-            element.textContent = 'Erro no teste';
-            element.className = 'error';
-        }
-        
-        return 0;
     }
+    
+    return null;
 }
 
-// Teste de velocidade de upload via HTTP direto (método correto)
+// Teste de velocidade de upload via HTTP direto (método robusto)
 async function testUploadSpeed() {
-    try {
-        const elementId = arguments[0] || 'upload';
-        const element = document.getElementById(elementId);
-        
-        if (element) {
-            element.textContent = 'Testando...';
+    const maxRetries = 3;
+    const timeoutMs = 20000; // 20 segundos timeout (upload é mais lento)
+    const minValidSpeed = 0.1; // 0.1 Mbps mínimo considerado válido
+    const maxValidSpeed = 5000; // 5 Gbps máximo considerado válido
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`🔄 Upload HTTP (tentativa ${attempt}/${maxRetries})...`);
+            
+            // Criar dados de teste com pattern para evitar compressão
+            const testData = new Uint8Array(1024 * 1024);
+            // Preencher com dados pseudo-aleatórios para evitar compressão
+            for (let i = 0; i < testData.length; i++) {
+                testData[i] = (i * 7 + i % 256) & 0xFF;
+            }
+            
+            // Cache-busting com timestamp único
+            const cacheBuster = Date.now() + Math.random().toString(36).substr(2, 9);
+            const url = `/upload?cb=${cacheBuster}`;
+            
+            // Controller para timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+            
+            const startTime = performance.now();
+            const response = await fetch(url, {
+                method: 'POST',
+                body: testData,
+                signal: controller.signal,
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Content-Length': testData.length.toString()
+                }
+            });
+            const endTime = performance.now();
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            // Validar medição
+            const durationSeconds = (endTime - startTime) / 1000;
+            const sizeBytes = testData.length;
+            
+            if (durationSeconds < 0.001) {
+                throw new Error(`Duração muito pequena: ${durationSeconds}s`);
+            }
+            
+            if (sizeBytes < 1000) {
+                throw new Error(`Tamanho inválido: ${sizeBytes} bytes`);
+            }
+            
+            // Calcular velocidade
+            const speedMbps = (sizeBytes * 8) / (durationSeconds * 1_000_000);
+            
+            // Validar velocidade (detecção de outliers)
+            if (speedMbps < minValidSpeed || speedMbps > maxValidSpeed) {
+                throw new Error(`Velocidade fora do range válido: ${speedMbps.toFixed(3)} Mbps`);
+            }
+            
+            const formattedValue = speedMbps.toFixed(3);
+            console.log(`✅ Upload HTTP: ${formattedValue} Mbps (${sizeBytes} bytes, ${durationSeconds.toFixed(3)}s, tentativa ${attempt})`);
+            
+            return parseFloat(formattedValue);
+            
+        } catch (error) {
+            console.warn(`⚠️ Upload tentativa ${attempt} falhou:`, error.message);
+            
+            if (attempt === maxRetries) {
+                console.error('❌ Todas as tentativas de upload falharam');
+                return null; // Retorna null em vez de 0 para indicar falha
+            }
+            
+            // Aguardar antes da próxima tentativa (backoff exponencial)
+            await new Promise(resolve => setTimeout(resolve, attempt * 1000));
         }
-        
-        console.log('🔄 Executando upload via HTTP direto...');
-        
-        // Criar dados de teste (1MB)
-        const testData = new Uint8Array(1024 * 1024);
-        
-        // Fazer upload direto dos dados
-        const startTime = performance.now();
-        const response = await fetch('/upload', {
-            method: 'POST',
-            body: testData,
-            headers: {
-                'Content-Type': 'application/octet-stream'
-            },
-            cache: 'no-cache'
-        });
-        const endTime = performance.now();
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        // Calcular velocidade
-        const durationSeconds = (endTime - startTime) / 1000;
-        const sizeBytes = testData.length;
-        const speedMbps = (sizeBytes * 8) / (durationSeconds * 1_000_000);
-        
-        const formattedValue = speedMbps.toFixed(3);
-        
-        console.log(`✅ Upload HTTP: ${formattedValue} Mbps (${sizeBytes} bytes em ${durationSeconds.toFixed(3)}s)`);
-        
-        if (element) {
-            element.textContent = formattedValue + ' Mbps';
-            element.className = 'success';
-        }
-        
-        return parseFloat(formattedValue);
-        
-    } catch (error) {
-        console.error('❌ Erro no upload HTTP:', error);
-        
-        const element = document.getElementById(arguments[0] || 'upload');
-        if (element) {
-            element.textContent = 'Erro no teste';
-            element.className = 'error';
-        }
-        
-        return 0;
     }
+    
+    return null;
 }
 
 // Teste de latência usando PING REAL do servidor para o cliente (1 ping por vez)

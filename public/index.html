@@ -777,6 +777,71 @@
             chartLabels: [],
         };
 
+        // --- Funções Auxiliares Robustas ---
+        
+        // Interpolação ou fallback para valores faltantes
+        function interpolateOrFallback(validData, currentIndex) {
+            // Se não há dados válidos ainda, usar 0
+            if (validData.length === 0) {
+                return 0;
+            }
+            
+            // Se há apenas um valor, usar ele
+            if (validData.length === 1) {
+                return validData[0];
+            }
+            
+            // Se há múltiplos valores, usar interpolação linear simples
+            // ou a média dos últimos 2 valores
+            const recentValues = validData.slice(-2);
+            return recentValues.reduce((a, b) => a + b, 0) / recentValues.length;
+        }
+        
+        // Análise estatística robusta com detecção de outliers
+        function calculateRobustStatistics(validSpeeds, totalTests) {
+            // Se não há dados válidos, retornar 0
+            if (validSpeeds.length === 0) {
+                console.warn('⚠️ Nenhum teste válido, retornando 0');
+                return 0;
+            }
+            
+            // Se há poucos dados (< 30% de sucesso), usar média simples
+            if (validSpeeds.length < totalTests * 0.3) {
+                const average = validSpeeds.reduce((a, b) => a + b, 0) / validSpeeds.length;
+                console.warn(`⚠️ Poucos dados válidos (${validSpeeds.length}/${totalTests}), usando média: ${average.toFixed(3)} Mbps`);
+                return average;
+            }
+            
+            // Ordenar para calcular mediana e quartis
+            const sorted = [...validSpeeds].sort((a, b) => a - b);
+            
+            // Calcular quartis para detecção de outliers
+            const q1Index = Math.floor(sorted.length * 0.25);
+            const q3Index = Math.floor(sorted.length * 0.75);
+            const q1 = sorted[q1Index];
+            const q3 = sorted[q3Index];
+            const iqr = q3 - q1;
+            
+            // Filtrar outliers (valores fora de 1.5 * IQR)
+            const lowerBound = q1 - 1.5 * iqr;
+            const upperBound = q3 + 1.5 * iqr;
+            const filteredSpeeds = sorted.filter(speed => speed >= lowerBound && speed <= upperBound);
+            
+            // Se removeu muitos outliers, usar dados originais
+            if (filteredSpeeds.length < validSpeeds.length * 0.5) {
+                console.log(`📊 Muitos outliers detectados, usando dados originais`);
+                const median = sorted[Math.floor(sorted.length / 2)];
+                return median;
+            }
+            
+            // Usar mediana dos dados filtrados (mais robusta que média)
+            const medianFiltered = filteredSpeeds[Math.floor(filteredSpeeds.length / 2)];
+            
+            console.log(`📊 Estatísticas - Dados válidos: ${validSpeeds.length}/${totalTests}, Outliers removidos: ${validSpeeds.length - filteredSpeeds.length}, Resultado: ${medianFiltered.toFixed(3)} Mbps`);
+            
+            return medianFiltered;
+        }
+
 
 
         // --- Initialization ---
@@ -992,23 +1057,26 @@
 
         // --- Test Implementations ---
         async function runDownloadTest() {
-            const dataPoints = 12; // Mais pontos para análise realista
+            const dataPoints = 12;
             const downloadData = [];
+            const rawData = []; // Para análise estatística
             testConfig.chartLabels = Array.from({ length: dataPoints }, (_, i) => `${i + 1}`);
             
-            // Aproximadamente 6 segundos total: 12 pontos * 500ms = 6 segundos
-            const intervalMs = 500;
+            // Intervalo entre testes para evitar sobrecarga
+            const intervalMs = 800; // Aumentado para reduzir concorrência
 
             for (let i = 0; i < dataPoints; i++) {
-                // Log de progresso no console
-                console.log(`📥 Download curl... ${i + 1}/${dataPoints}`);
+                console.log(`📥 Download HTTP... ${i + 1}/${dataPoints}`);
                 
                 const speed = await testDownloadSpeed();
-                if (typeof speed === 'number' && speed > 0) {
+                rawData.push(speed); // Guarda resultado original (null ou número)
+                
+                if (speed !== null && speed > 0) {
                     downloadData.push(speed);
                 } else {
-                    // Adicionar 0 para manter o gráfico consistente
-                    downloadData.push(0);
+                    // Para o gráfico, usar interpolação ou último valor válido
+                    const interpolatedValue = interpolateOrFallback(downloadData, i);
+                    downloadData.push(interpolatedValue);
                 }
                 
                 // Atualizar gráfico em tempo real
@@ -1020,33 +1088,37 @@
                 }
             }
             
-            // Calcular média apenas dos valores válidos
-            const validData = downloadData.filter(speed => speed > 0);
-            if (validData.length > 0) {
-                const avgSpeed = validData.reduce((a, b) => a + b, 0) / validData.length;
-                document.getElementById('download-result').textContent = `${avgSpeed.toFixed(3)} Mbps`;
-            } else {
-                document.getElementById('download-result').textContent = `0.000 Mbps`;
-            }
+            // Análise estatística robusta
+            const validSpeeds = rawData.filter(speed => speed !== null && speed > 0);
+            const finalResult = calculateRobustStatistics(validSpeeds, dataPoints);
+            
+            document.getElementById('download-result').textContent = `${finalResult.toFixed(3)} Mbps`;
+            
+            // Log detalhado
+            const successRate = `${validSpeeds.length}/${dataPoints}`;
+            console.log(`📊 Download Final - Taxa de sucesso: ${successRate}, Resultado: ${finalResult.toFixed(3)} Mbps`);
         }
 
         async function runUploadTest() {
-            const dataPoints = 12; // Mais pontos para análise realista
+            const dataPoints = 12;
             const uploadData = [];
+            const rawData = []; // Para análise estatística
             
-            // Aproximadamente 6 segundos total: 12 pontos * 500ms = 6 segundos
-            const intervalMs = 500;
+            // Intervalo entre testes para evitar sobrecarga
+            const intervalMs = 1000; // Upload é mais lento, intervalo maior
 
             for (let i = 0; i < dataPoints; i++) {
-                // Log de progresso no console
-                console.log(`📤 Upload curl... ${i + 1}/${dataPoints}`);
+                console.log(`📤 Upload HTTP... ${i + 1}/${dataPoints}`);
                 
                 const speed = await testUploadSpeed();
-                if (typeof speed === 'number' && speed > 0) {
+                rawData.push(speed); // Guarda resultado original (null ou número)
+                
+                if (speed !== null && speed > 0) {
                     uploadData.push(speed);
                 } else {
-                    // Adicionar 0 para manter o gráfico consistente
-                    uploadData.push(0);
+                    // Para o gráfico, usar interpolação ou último valor válido
+                    const interpolatedValue = interpolateOrFallback(uploadData, i);
+                    uploadData.push(interpolatedValue);
                 }
                 
                 // Atualizar gráfico em tempo real
@@ -1058,14 +1130,15 @@
                 }
             }
             
-            // Calcular média apenas dos valores válidos
-            const validData = uploadData.filter(speed => speed > 0);
-            if (validData.length > 0) {
-                const avgSpeed = validData.reduce((a, b) => a + b, 0) / validData.length;
-                document.getElementById('upload-result').textContent = `${avgSpeed.toFixed(3)} Mbps`;
-            } else {
-                document.getElementById('upload-result').textContent = `0.000 Mbps`;
-            }
+            // Análise estatística robusta
+            const validSpeeds = rawData.filter(speed => speed !== null && speed > 0);
+            const finalResult = calculateRobustStatistics(validSpeeds, dataPoints);
+            
+            document.getElementById('upload-result').textContent = `${finalResult.toFixed(3)} Mbps`;
+            
+            // Log detalhado
+            const successRate = `${validSpeeds.length}/${dataPoints}`;
+            console.log(`📊 Upload Final - Taxa de sucesso: ${successRate}, Resultado: ${finalResult.toFixed(3)} Mbps`);
         }
 
         async function runLatencyTest() {
@@ -1292,89 +1365,31 @@
 
         // Função de teste de download HTTP direto - para validação
         window.testDownloadHTTP = async function() {
-            console.log('🔄 Testando download HTTP direto...');
+            console.log('🔄 Testando download HTTP direto robusto...');
             
-            try {
-                const startTime = performance.now();
-                const response = await fetch('/testfile', {
-                    method: 'GET',
-                    cache: 'no-cache'
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                
-                const blob = await response.blob();
-                const endTime = performance.now();
-                
-                const durationSeconds = (endTime - startTime) / 1000;
-                const sizeBytes = blob.size;
-                const speedMbps = (sizeBytes * 8) / (durationSeconds * 1_000_000);
-                
-                console.log(`✅ Download HTTP realizado com sucesso`);
-                console.log(`📊 Velocidade: ${speedMbps.toFixed(3)} Mbps`);
-                console.log(`📈 Detalhes:`);
-                console.log(`   - Tamanho: ${sizeBytes} bytes`);
-                console.log(`   - Tempo: ${durationSeconds.toFixed(3)} segundos`);
-                console.log(`   - Velocidade: ${speedMbps.toFixed(3)} Mbps`);
-                
-                return {
-                    success: true,
-                    sizeBytes,
-                    durationSeconds,
-                    speedMbps
-                };
-                
-            } catch (error) {
-                console.error('❌ Erro na requisição download HTTP:', error);
-                return null;
+            const result = await testDownloadSpeed();
+            
+            if (result !== null) {
+                console.log(`✅ Download HTTP bem-sucedido: ${result.toFixed(3)} Mbps`);
+                return { success: true, speedMbps: result };
+            } else {
+                console.error('❌ Download HTTP falhou após todas as tentativas');
+                return { success: false, speedMbps: 0 };
             }
         };
 
         // Função de teste de upload HTTP direto - para validação
         window.testUploadHTTP = async function() {
-            console.log('🔄 Testando upload HTTP direto...');
+            console.log('🔄 Testando upload HTTP direto robusto...');
             
-            try {
-                const testData = new Uint8Array(1024 * 1024);
-                
-                const startTime = performance.now();
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: testData,
-                    headers: {
-                        'Content-Type': 'application/octet-stream'
-                    },
-                    cache: 'no-cache'
-                });
-                const endTime = performance.now();
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                
-                const durationSeconds = (endTime - startTime) / 1000;
-                const sizeBytes = testData.length;
-                const speedMbps = (sizeBytes * 8) / (durationSeconds * 1_000_000);
-                
-                console.log(`✅ Upload HTTP realizado com sucesso`);
-                console.log(`📊 Velocidade: ${speedMbps.toFixed(3)} Mbps`);
-                console.log(`📈 Detalhes:`);
-                console.log(`   - Tamanho: ${sizeBytes} bytes`);
-                console.log(`   - Tempo: ${durationSeconds.toFixed(3)} segundos`);
-                console.log(`   - Velocidade: ${speedMbps.toFixed(3)} Mbps`);
-                
-                return {
-                    success: true,
-                    sizeBytes,
-                    durationSeconds,
-                    speedMbps
-                };
-                
-            } catch (error) {
-                console.error('❌ Erro na requisição upload HTTP:', error);
-                return null;
+            const result = await testUploadSpeed();
+            
+            if (result !== null) {
+                console.log(`✅ Upload HTTP bem-sucedido: ${result.toFixed(3)} Mbps`);
+                return { success: true, speedMbps: result };
+            } else {
+                console.error('❌ Upload HTTP falhou após todas as tentativas');
+                return { success: false, speedMbps: 0 };
             }
         };
     </script>
