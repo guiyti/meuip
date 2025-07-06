@@ -14,9 +14,10 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 ## 📊 Funcionalidades
 
 - **Múltiplas medições**: 12 testes por padrão (configurável)
+- **Sistema de retry**: 3 tentativas por teste (igual à interface web)
 - **Análise estatística**: Calcula mediana igual à interface web
 - **Precisão formatada**: Download/Upload (inteiros), Latência (3 decimais)
-- **Timeouts otimizados**: 15s (download) / 30s (upload)
+- **Timeouts otimizados**: 15s (download) / 30s (upload) por tentativa
 - **Compatibilidade**: Detecção automática macOS/Linux
 - **Cache-busting**: Evita cache com timestamps únicos
 - **Auto-delete**: Remove-se após execução (sempre versão atualizada)
@@ -58,6 +59,7 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 - **Download**: Curl pode ser 5-10% mais rápido
 - **Upload**: Interface web pode ser mais rápida
 - **Latência**: Ping sempre mais preciso
+- **Robustez**: Mesma taxa de sucesso com retry automático
 
 ### Diferenças >20%:
 Podem indicar:
@@ -101,27 +103,37 @@ Execute múltiplas vezes para criar baseline de performance.
 
 ## 🔬 Detalhes Técnicos
 
+### Sistema de Retry
+O script implementa o mesmo sistema de retry da interface web:
+- **3 tentativas** por teste individual
+- **Timeout independente** por tentativa
+- **Delay progressivo** entre tentativas
+- **Falha apenas** se todas as 3 tentativas falharem
+
 ### Comandos Executados:
 
-**Download:**
+**Download (com retry):**
 ```bash
-curl -s -o /dev/null -w "%{speed_download}" "http://meuip.ufabc.int.br/testfile?cb=TIMESTAMP"
+# Máximo 3 tentativas por teste
+curl -s -o /dev/null -w "%{speed_download}" --max-time 15 \
+"http://meuip.ufabc.int.br/testfile?cb=TIMESTAMP"
 ```
 
-**Upload:**
+**Upload (com retry):**
 ```bash
+# Máximo 3 tentativas por teste
 dd if=/dev/zero bs=1024 count=1024 2>/dev/null | \
-curl -s -X POST --data-binary @- -w "%{speed_upload}" \
+curl -s -X POST --data-binary @- -w "%{speed_upload}" --max-time 30 \
 "http://meuip.ufabc.int.br/upload?cb=TIMESTAMP"
 ```
 
-**Latência:**
+**Latência (com retry):**
 ```bash
-# macOS
-ping -c 12 -t 5 meuip.ufabc.int.br
+# macOS - 3 tentativas por teste
+ping -c 4 -t 5 meuip.ufabc.int.br
 
-# Linux
-ping -c 12 -W 2 meuip.ufabc.int.br
+# Linux - 3 tentativas por teste
+ping -c 4 -W 2 meuip.ufabc.int.br
 ```
 
 ## 📝 Debugging
@@ -170,6 +182,7 @@ brew install bc
 - Problemas de rede intermitentes
 - Servidor sobrecarregado
 - Firewall bloqueando conexões
+- **Nota**: Com retry automático, testes falharam apenas se todas as 3 tentativas falharam
 
 ## 📞 Suporte
 
