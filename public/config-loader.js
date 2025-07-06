@@ -27,6 +27,31 @@
         document.title = cfg.ui.pageTitle;
     }
 
+    // Determinar host base
+    const baseHost = cfg.network?.host || window.location.host;
+
+    function replaceHostPlaceholders() {
+        const all = document.querySelectorAll('*');
+        all.forEach(el => {
+            // Substituir em texto interno
+            if (el.childNodes && el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+                const txt = el.textContent;
+                if (txt.includes('__HOST__')) {
+                    el.textContent = txt.replaceAll('__HOST__', baseHost);
+                }
+            }
+            // Substituir em atributos comuns
+            Array.from(el.attributes || []).forEach(attr => {
+                if (attr.value.includes('__HOST__')) {
+                    el.setAttribute(attr.name, attr.value.replaceAll('__HOST__', baseHost));
+                }
+            });
+        });
+    }
+
+    // Executar após logo/textos para garantir substituição completa
+    replaceHostPlaceholders();
+
     // Dispatch para que outros módulos saibam
     window.dispatchEvent(new Event('configLoaded'));
   } catch (err) {

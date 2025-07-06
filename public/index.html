@@ -879,9 +879,9 @@
                                                 <div class="tab-pane fade show active" id="bash-script" role="tabpanel">
                                                     <div class="bg-dark text-light p-3 rounded mb-3 position-relative code-container">
                                                         <div class="pe-5">
-                                                            <code class="text-success">curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh</code>
+                                                            <code class="text-success" data-replace-host>curl -O http://__HOST__/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh</code>
                                                         </div>
-                                                        <button class="btn btn-success btn-sm position-absolute top-50 end-0 translate-middle-y me-2 copy-btn" onclick="copyToClipboard('curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh')" title="Copiar comando">
+                                                        <button class="btn btn-success btn-sm position-absolute top-50 end-0 translate-middle-y me-2 copy-btn" onclick="copyToClipboard('curl -O http://__HOST__/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh')" title="Copiar comando">
                                                             <i class="fas fa-copy me-1"></i>Copiar
                                                         </button>
                                                     </div>
