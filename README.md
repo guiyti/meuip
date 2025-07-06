@@ -2,7 +2,7 @@
 
 <p align="center">
   <!-- Logo UFABC como exemplo inicial -->
-  <img src="https://nti.ufabc.edu.br/wp-content/themes/NTI-theme/images/logo2.png" alt="Exemplo de Logo" width="180"/>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/Ufabc_logo.png" alt="Exemplo de Logo" width="180"/>
 </p>
 
 > A imagem acima é **apenas um exemplo** (logo da UFABC).  
