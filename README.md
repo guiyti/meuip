@@ -1,5 +1,18 @@
 # Network Speed Test (White-Label Edition)
 
+<p align="center">
+  <!-- Logo UFABC como exemplo inicial -->
+  <img src="https://nti.ufabc.edu.br/wp-content/themes/NTI-theme/images/logo2.png" alt="Exemplo de Logo" width="180"/>
+</p>
+
+> A imagem acima é **apenas um exemplo** (logo da UFABC).  
+> Ao alterar o `config.json` você pode trocar facilmente por qualquer logo.
+
+<!-- Exemplo de screenshot (substitua por seu próprio arquivo se quiser) -->
+<p align="center">
+  <img src="docs/demo-screenshot.png" alt="Screenshot do teste em execução" width="700"/>
+</p>
+
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg) ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
 Aplicação web **genérica** para testes de download, upload e latência em tempo real. Todo o _branding_ (nome da empresa, logo, cores), endpoints de teste e textos dinâmicos são definidos em **um único arquivo JSON**.
