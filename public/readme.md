@@ -80,7 +80,7 @@ const miniChartOptions = {
                     if (borderColor === 'rgb(255,210,0)') {
                         return `${value.toFixed(3)} ms`;
                     }
-                    return `${value.toFixed(3)} Mbps`;
+                    return `${Math.round(value)} Mbps`;
                 }
             }
         }
@@ -148,17 +148,17 @@ async function runLatencyTest() {
 
 ### Implementação
 ```javascript
-// Todos os valores exibidos com 3 casas decimais
+// Formatação diferenciada: latência com 3 casas, velocidade inteira
 document.getElementById('latency-result').textContent = `${avgLatency.toFixed(3)} ms`;
-document.getElementById('download-result').textContent = `${avgSpeed.toFixed(3)} Mbps`;
-document.getElementById('upload-result').textContent = `${avgSpeed.toFixed(3)} Mbps`;
+document.getElementById('download-result').textContent = `${Math.round(avgSpeed)} Mbps`;
+document.getElementById('upload-result').textContent = `${Math.round(avgSpeed)} Mbps`;
 ```
 
 ### Características
 - **Latência**: `0.194 ms` (3 casas decimais)
-- **Velocidade**: `25.450 Mbps` (3 casas decimais)
-- **Consistência**: Todos os valores seguem o mesmo padrão
-- **Tooltips**: Mantêm a mesma precisão
+- **Velocidade**: `25 Mbps` (valores inteiros)
+- **Consistência**: Latência precisa, velocidade limpa
+- **Tooltips**: Mantêm a formatação apropriada
 
 ## 📁 Estrutura de Arquivos
 
@@ -175,7 +175,7 @@ public/
 ### v2.1.0 (Janeiro 2025)
 - ✅ **Função `runLatencyTest()`**: 12 pings individuais em tempo real
 - ✅ **Tooltips melhorados**: Valores com unidades, sem índices
-- ✅ **Precisão 3 casas**: Todos os valores `.toFixed(3)`
+- ✅ **Formatação otimizada**: Latência (3 casas), velocidade (inteiros)
 - ✅ **Gráfico progressivo**: Atualização imediata após cada ping
 - ✅ **Logs detalhados**: Console mostra cada ping individual
 

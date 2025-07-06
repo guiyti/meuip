@@ -705,7 +705,7 @@
                                     <h6 class="mt-3">Exemplo de cálculo:</h6>
                                     <p><code>1.048.576 bytes em 0.125 segundos</code></p>
                                     <p>Velocidade: (1.048.576 × 8) / (0.125 × 1.000.000)</p>
-                                    <p>Resultado: <strong>67.1 Mbps</strong></p>
+                                    <p>Resultado: <strong>67 Mbps</strong></p>
                                 </div>
                             </div>
                         </div>
@@ -733,7 +733,7 @@
                                     <h6 class="mt-3">Exemplo de cálculo:</h6>
                                     <p><code>1.048.576 bytes em 0.156 segundos</code></p>
                                     <p>Velocidade: (1.048.576 × 8) / (0.156 × 1.000.000)</p>
-                                    <p>Resultado: <strong>53.7 Mbps</strong></p>
+                                    <p>Resultado: <strong>54 Mbps</strong></p>
                                 </div>
                             </div>
                         </div>
@@ -960,7 +960,7 @@ Testes por métrica: 12
             // Se há poucos dados (< 30% de sucesso), usar média simples
             if (validSpeeds.length < totalTests * 0.3) {
                 const average = validSpeeds.reduce((a, b) => a + b, 0) / validSpeeds.length;
-                console.warn(`⚠️ Poucos dados válidos (${validSpeeds.length}/${totalTests}), usando média: ${average.toFixed(3)} Mbps`);
+                console.warn(`⚠️ Poucos dados válidos (${validSpeeds.length}/${totalTests}), usando média: ${Math.round(average)} Mbps`);
                 return average;
             }
             
@@ -989,7 +989,7 @@ Testes por métrica: 12
             // Usar mediana dos dados filtrados (mais robusta que média)
             const medianFiltered = filteredSpeeds[Math.floor(filteredSpeeds.length / 2)];
             
-            console.log(`📊 Estatísticas - Dados válidos: ${validSpeeds.length}/${totalTests}, Outliers removidos: ${validSpeeds.length - filteredSpeeds.length}, Resultado: ${medianFiltered.toFixed(3)} Mbps`);
+            console.log(`📊 Estatísticas - Dados válidos: ${validSpeeds.length}/${totalTests}, Outliers removidos: ${validSpeeds.length - filteredSpeeds.length}, Resultado: ${Math.round(medianFiltered)} Mbps`);
             
             return medianFiltered;
         }
@@ -1244,11 +1244,11 @@ Testes por métrica: 12
             const validSpeeds = rawData.filter(speed => speed !== null && speed > 0);
             const finalResult = calculateRobustStatistics(validSpeeds, dataPoints);
             
-            document.getElementById('download-result').textContent = `${finalResult.toFixed(3)} Mbps`;
+            document.getElementById('download-result').textContent = `${Math.round(finalResult)} Mbps`;
             
             // Log detalhado
             const successRate = `${validSpeeds.length}/${dataPoints}`;
-            console.log(`📊 Download Final - Taxa de sucesso: ${successRate}, Resultado: ${finalResult.toFixed(3)} Mbps`);
+            console.log(`📊 Download Final - Taxa de sucesso: ${successRate}, Resultado: ${Math.round(finalResult)} Mbps`);
         }
 
         async function runUploadTest() {
@@ -1286,11 +1286,11 @@ Testes por métrica: 12
             const validSpeeds = rawData.filter(speed => speed !== null && speed > 0);
             const finalResult = calculateRobustStatistics(validSpeeds, dataPoints);
             
-            document.getElementById('upload-result').textContent = `${finalResult.toFixed(3)} Mbps`;
+            document.getElementById('upload-result').textContent = `${Math.round(finalResult)} Mbps`;
             
             // Log detalhado
             const successRate = `${validSpeeds.length}/${dataPoints}`;
-            console.log(`📊 Upload Final - Taxa de sucesso: ${successRate}, Resultado: ${finalResult.toFixed(3)} Mbps`);
+            console.log(`📊 Upload Final - Taxa de sucesso: ${successRate}, Resultado: ${Math.round(finalResult)} Mbps`);
         }
 
         async function runLatencyTest() {
@@ -1373,14 +1373,14 @@ Testes por métrica: 12
                                 // Detectar tipo do gráfico baseado na cor
                                 const borderColor = context.dataset.borderColor;
                                 if (borderColor === 'rgb(5,103,46)' || borderColor === 'rgb(0,66,13)') {
-                                    // Gráfico de velocidade (download/upload)
-                                    return `${value.toFixed(3)} Mbps`;
+                                    // Gráfico de velocidade (download/upload) - sem casas decimais
+                                    return `${Math.round(value)} Mbps`;
                                 } else if (borderColor === 'rgb(255,210,0)') {
-                                    // Gráfico de latência
+                                    // Gráfico de latência - com 3 casas decimais
                                     return `${value.toFixed(3)} ms`;
                                 } else {
-                                    // Fallback genérico
-                                    return `${value.toFixed(3)}`;
+                                    // Fallback genérico para velocidade
+                                    return `${Math.round(value)}`;
                                 }
                             }
                         }
@@ -1522,7 +1522,7 @@ Testes por métrica: 12
             const result = await testDownloadSpeed();
             
             if (result !== null) {
-                console.log(`✅ Download HTTP bem-sucedido: ${result.toFixed(3)} Mbps`);
+                console.log(`✅ Download HTTP bem-sucedido: ${Math.round(result)} Mbps`);
                 return { success: true, speedMbps: result };
             } else {
                 console.error('❌ Download HTTP falhou após todas as tentativas');
@@ -1537,7 +1537,7 @@ Testes por métrica: 12
             const result = await testUploadSpeed();
             
             if (result !== null) {
-                console.log(`✅ Upload HTTP bem-sucedido: ${result.toFixed(3)} Mbps`);
+                console.log(`✅ Upload HTTP bem-sucedido: ${Math.round(result)} Mbps`);
                 return { success: true, speedMbps: result };
             } else {
                 console.error('❌ Upload HTTP falhou após todas as tentativas');
