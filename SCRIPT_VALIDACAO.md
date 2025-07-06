@@ -14,8 +14,8 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 ## 📊 Funcionalidades
 
 - **Múltiplas medições**: 12 testes por padrão (configurável)
-- **Sistema de retry**: 3 tentativas por teste (igual à interface web)
-- **Análise estatística**: Calcula mediana igual à interface web
+- **Sistema de retry**: 3 tentativas por teste (download/upload)
+- **Análise estatística**: Calcula mediana (download/upload) e média (latência)
 - **Precisão formatada**: Download/Upload (inteiros), Latência (3 decimais)
 - **Timeouts otimizados**: 15s (download) / 30s (upload) por tentativa
 - **Compatibilidade**: Detecção automática macOS/Linux
@@ -23,7 +23,7 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 - **Auto-delete**: Remove-se após execução (sempre versão atualizada)
 - **Progress visual**: Mostra progresso colorido
 - **Taxa de sucesso**: Mostra quantos testes foram bem-sucedidos
-- **Debug avançado**: Mostra detalhes em caso de falha
+- **Teste de latência**: Ping único com 12 pacotes (mais eficiente)
 
 ## 🛠️ Uso Avançado
 
@@ -43,11 +43,11 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 ### Exemplo de Saída:
 ```
 ===============================================
-  Validação de Velocidade UFABCnet - v1.1
+  Validação de Velocidade UFABCnet - v1.2
 ===============================================
 🔽 Download - Mediana: 67 Mbps (Taxa de sucesso: 12/12)
 🔼 Upload - Mediana: 52 Mbps (Taxa de sucesso: 11/12)
-🏓 Latência - Mediana: 12.406 ms (Taxa de sucesso: 12/12)
+🏓 Latência - Média: 12.406 ms (12/12 pings bem-sucedidos)
 
 🧹 Limpando arquivo temporário...
 ✅ Script removido com sucesso
@@ -104,11 +104,12 @@ Execute múltiplas vezes para criar baseline de performance.
 ## 🔬 Detalhes Técnicos
 
 ### Sistema de Retry
-O script implementa o mesmo sistema de retry da interface web:
-- **3 tentativas** por teste individual
-- **Timeout independente** por tentativa
+O script implementa retry para download e upload:
+- **3 tentativas** por teste individual (download/upload)
+- **Timeout independente** por tentativa (15s/30s)
 - **Delay progressivo** entre tentativas
 - **Falha apenas** se todas as 3 tentativas falharem
+- **Latência**: Ping único com 12 pacotes (mais eficiente que retry)
 
 ### Comandos Executados:
 
@@ -127,13 +128,13 @@ curl -s -X POST --data-binary @- -w "%{speed_upload}" --max-time 30 \
 "http://meuip.ufabc.int.br/upload?cb=TIMESTAMP"
 ```
 
-**Latência (com retry):**
+**Latência (ping único):**
 ```bash
-# macOS - 3 tentativas por teste
-ping -c 4 -t 5 meuip.ufabc.int.br
+# macOS - 12 pings em um comando
+ping -c 12 -t 5 meuip.ufabc.int.br
 
-# Linux - 3 tentativas por teste
-ping -c 4 -W 2 meuip.ufabc.int.br
+# Linux - 12 pings em um comando
+ping -c 12 -W 2 meuip.ufabc.int.br
 ```
 
 ## 📝 Debugging

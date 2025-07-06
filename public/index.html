@@ -753,24 +753,28 @@
                                     </div>
 
                                     <h6>🔽 Teste de Download via Curl:</h6>
-                                    <div class="bg-dark text-light p-3 rounded mb-3">
-                                        <code class="text-success">curl -s -o /dev/null -w "%{time_total},%{size_download},%{speed_download}" http://meuip.ufabc.int.br/testfile</code>
+                                    <div class="bg-dark text-light p-3 rounded mb-3 position-relative">
+                                        <code class="text-success">curl -s -o /dev/null -w "%{speed_download}" http://meuip.ufabc.int.br/testfile</code>
+                                        <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 mt-2 me-2" onclick="copyToClipboard('curl -s -o /dev/null -w \"%{speed_download}\" http://meuip.ufabc.int.br/testfile')" title="Copiar comando">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
                                     </div>
-                                    <p><strong>Saída esperada:</strong> <code>0.125,1048576,67108864</code></p>
-                                    <p><strong>Cálculo:</strong> 67.108.864 bytes/s = <strong>67 Mbps</strong></p>
 
                                     <h6 class="mt-4">🔼 Teste de Upload via Curl:</h6>
-                                    <div class="bg-dark text-light p-3 rounded mb-3">
-                                        <code class="text-success">dd if=/dev/zero bs=1024 count=1024 2>/dev/null | curl -s -X POST --data-binary @- -w "%{time_total},%{size_upload},%{speed_upload}" http://meuip.ufabc.int.br/upload</code>
+                                    <div class="bg-dark text-light p-3 rounded mb-3 position-relative">
+                                        <code class="text-success">dd if=/dev/zero bs=1024 count=1024 | curl -s -X POST --data-binary @- -w "%{speed_upload}" http://meuip.ufabc.int.br/upload</code>
+                                        <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 mt-2 me-2" onclick="copyToClipboard('dd if=/dev/zero bs=1024 count=1024 | curl -s -X POST --data-binary @- -w \"%{speed_upload}\" http://meuip.ufabc.int.br/upload')" title="Copiar comando">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
                                     </div>
-                                    <p><strong>Saída esperada:</strong> <code>0.156,1048576,53687091</code></p>
-                                    <p><strong>Cálculo:</strong> 53.687.091 bytes/s = <strong>53 Mbps</strong></p>
 
                                     <h6 class="mt-4">🏓 Teste de Latência via Ping:</h6>
-                                    <div class="bg-dark text-light p-3 rounded mb-3">
+                                    <div class="bg-dark text-light p-3 rounded mb-3 position-relative">
                                         <code class="text-success">ping -c 12 meuip.ufabc.int.br</code>
+                                        <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 mt-2 me-2" onclick="copyToClipboard('ping -c 12 meuip.ufabc.int.br')" title="Copiar comando">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
                                     </div>
-                                    <p><strong>Resultado:</strong> Média dos tempos RTT</p>
 
                                     <h6 class="mt-4">📊 Script Profissional de Validação:</h6>
                                     <div class="alert alert-success">
@@ -780,12 +784,11 @@
                                     </div>
                                     
                                     <h6 class="mt-3">🚀 Como usar o script:</h6>
-                                    <div class="bg-dark text-light p-3 rounded mb-3">
-<pre class="text-light mb-0"># Baixar, executar e remover automaticamente
-curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh
-
-# Teste customizado (20 medições)
-curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh 20</pre>
+                                    <div class="bg-dark text-light p-3 rounded mb-3 position-relative">
+                                        <code class="text-success">curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh</code>
+                                        <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 mt-2 me-2" onclick="copyToClipboard('curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh')" title="Copiar comando">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
                                     </div>
                                     
                                     <div class="alert alert-info small">
@@ -1544,6 +1547,69 @@ Testes por métrica: 12
                 return { success: false, speedMbps: 0 };
             }
         };
+
+        // Função para copiar texto para clipboard
+        window.copyToClipboard = function(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopyFeedback('Comando copiado!');
+                }, function(err) {
+                    console.error('Erro ao copiar: ', err);
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                fallbackCopyTextToClipboard(text);
+            }
+        };
+
+        // Fallback para navegadores sem clipboard API
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopyFeedback('Comando copiado!');
+                } else {
+                    showCopyFeedback('Erro ao copiar');
+                }
+            } catch (err) {
+                console.error('Erro no fallback copy: ', err);
+                showCopyFeedback('Erro ao copiar');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // Feedback visual para cópia
+        function showCopyFeedback(message) {
+            const feedback = document.createElement('div');
+            feedback.textContent = message;
+            feedback.className = 'position-fixed top-0 start-50 translate-middle-x alert alert-success alert-dismissible fade show';
+            feedback.style.zIndex = '9999';
+            feedback.style.marginTop = '20px';
+            feedback.innerHTML = `
+                <i class="fas fa-check me-2"></i>${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(feedback);
+            
+            // Remover após 3 segundos
+            setTimeout(() => {
+                if (feedback.parentNode) {
+                    feedback.parentNode.removeChild(feedback);
+                }
+            }, 3000);
+        }
     </script>
 </body>
 </html>
