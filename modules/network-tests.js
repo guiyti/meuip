@@ -6,7 +6,7 @@ const config = {
     testRounds: 1, // 1 rodada por ponto para velocidade (12 pontos = 12 testes)
     pingCount: 5, // 5 pings base * 3 = 15 medições para latência precisa
     timeoutMs: 45000, // 45 segundos timeout - robusto para produção
-    retryAttempts: 3, // 3 tentativas para garantir robustez
+    retryAttempts: 10, // 10 tentativas para máxima robustez
     dataPoints: 12, // Pontos de dados para gráficos (mais realista)
     testIntervalMs: 500 // Intervalo entre pontos de dados
 };
@@ -346,11 +346,24 @@ async function latencyTest() {
     const maxRetries = 10;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        let timeoutId = null;
         try {
-            console.log(`🏓 Executando ping real (tentativa ${attempt}/${maxRetries})...`);
+            console.log(`🏓 Executando ping real único (1 pacote, tentativa ${attempt}/${maxRetries})...`);
             
-            // Fazer UMA única chamada para ping com 1 pacote
-            const response = await fetchWithTimeoutAndRetry('/api/ping-real?count=1');
+            // Fazer UMA única chamada para ping com 1 pacote (sem retry interno)
+            const controller = new AbortController();
+            timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+            
+            const response = await fetch('/api/ping-real?count=1', {
+                signal: controller.signal,
+                cache: 'no-cache',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
+            });
+            
+            clearTimeout(timeoutId);
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
@@ -375,6 +388,11 @@ async function latencyTest() {
             }
             
         } catch (error) {
+            // Limpar timeout se houver erro
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            
             console.warn(`⚠️ Ping tentativa ${attempt} falhou:`, error.message);
             
             if (attempt === maxRetries) {
