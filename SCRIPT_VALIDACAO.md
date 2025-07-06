@@ -14,7 +14,7 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 ## 📊 Funcionalidades
 
 - **Múltiplas medições**: 12 testes por padrão (configurável)
-- **Sistema de retry**: 3 tentativas por teste (download/upload)
+- **Sistema de retry robusto**: 10 tentativas por teste (todas as métricas)
 - **Análise estatística**: Calcula mediana (download/upload) e média (latência)
 - **Precisão formatada**: Download/Upload (inteiros), Latência (3 decimais)
 - **Timeouts otimizados**: 15s (download) / 30s (upload) por tentativa
@@ -23,7 +23,7 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 - **Auto-delete**: Remove-se após execução (sempre versão atualizada)
 - **Progress visual**: Mostra progresso colorido
 - **Taxa de sucesso**: Mostra quantos testes foram bem-sucedidos
-- **Teste de latência**: Ping único com 12 pacotes (mais eficiente)
+- **Teste de latência**: Ping com retry para máxima confiabilidade
 
 ## 🛠️ Uso Avançado
 
@@ -43,7 +43,7 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 ### Exemplo de Saída:
 ```
 ===============================================
-  Validação de Velocidade UFABCnet - v1.2
+  Validação de Velocidade UFABCnet - v1.3
 ===============================================
 🔽 Download - Mediana: 67 Mbps (Taxa de sucesso: 12/12)
 🔼 Upload - Mediana: 52 Mbps (Taxa de sucesso: 11/12)
@@ -59,7 +59,7 @@ curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.s
 - **Download**: Curl pode ser 5-10% mais rápido
 - **Upload**: Interface web pode ser mais rápida
 - **Latência**: Ping sempre mais preciso
-- **Robustez**: Mesma taxa de sucesso com retry automático
+- **Robustez**: Ambos usam 10 tentativas para máxima confiabilidade
 
 ### Diferenças >20%:
 Podem indicar:
@@ -103,37 +103,37 @@ Execute múltiplas vezes para criar baseline de performance.
 
 ## 🔬 Detalhes Técnicos
 
-### Sistema de Retry
-O script implementa retry para download e upload:
-- **3 tentativas** por teste individual (download/upload)
+### Sistema de Retry Robusto
+O script implementa retry para todas as métricas:
+- **10 tentativas** por teste individual (download/upload/latência)
 - **Timeout independente** por tentativa (15s/30s)
 - **Delay progressivo** entre tentativas
-- **Falha apenas** se todas as 3 tentativas falharem
-- **Latência**: Ping único com 12 pacotes (mais eficiente que retry)
+- **Falha apenas** se todas as 10 tentativas falharem
+- **Latência**: Ping com retry completo para máxima confiabilidade
 
 ### Comandos Executados:
 
-**Download (com retry):**
+**Download (com retry robusto):**
 ```bash
-# Máximo 3 tentativas por teste
+# Máximo 10 tentativas por teste
 curl -s -o /dev/null -w "%{speed_download}" --max-time 15 \
 "http://meuip.ufabc.int.br/testfile?cb=TIMESTAMP"
 ```
 
-**Upload (com retry):**
+**Upload (com retry robusto):**
 ```bash
-# Máximo 3 tentativas por teste
+# Máximo 10 tentativas por teste
 dd if=/dev/zero bs=1024 count=1024 2>/dev/null | \
 curl -s -X POST --data-binary @- -w "%{speed_upload}" --max-time 30 \
 "http://meuip.ufabc.int.br/upload?cb=TIMESTAMP"
 ```
 
-**Latência (ping único):**
+**Latência (com retry robusto):**
 ```bash
-# macOS - 12 pings em um comando
+# macOS - 12 pings, máximo 10 tentativas
 ping -c 12 -t 5 meuip.ufabc.int.br
 
-# Linux - 12 pings em um comando
+# Linux - 12 pings, máximo 10 tentativas
 ping -c 12 -W 2 meuip.ufabc.int.br
 ```
 

@@ -169,7 +169,7 @@ async function testClientIPv6(serverIPv6) {
 
 // Teste de velocidade de download via HTTP direto (método robusto)
 async function testDownloadSpeed() {
-    const maxRetries = 3;
+    const maxRetries = 10;
     const timeoutMs = 15000; // 15 segundos timeout
     const minValidSpeed = 0.1; // 0.1 Mbps mínimo considerado válido
     const maxValidSpeed = 10000; // 10 Gbps máximo considerado válido
@@ -257,7 +257,7 @@ async function testDownloadSpeed() {
 
 // Teste de velocidade de upload via HTTP direto (método robusto)
 async function testUploadSpeed() {
-    const maxRetries = 3;
+    const maxRetries = 10;
     const timeoutMs = 20000; // 20 segundos timeout (upload é mais lento)
     const minValidSpeed = 0.1; // 0.1 Mbps mínimo considerado válido
     const maxValidSpeed = 5000; // 5 Gbps máximo considerado válido
@@ -343,71 +343,81 @@ async function testUploadSpeed() {
 
 // Teste de latência usando PING REAL do servidor para o cliente (1 ping por vez)
 async function latencyTest() {
-    try {
-        console.log('🏓 Executando ping real único (1 pacote)...');
-        
-        // Fazer UMA única chamada para ping com 1 pacote
-        const response = await fetchWithTimeoutAndRetry('/api/ping-real?count=1');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.latencies && data.latencies.length > 0) {
-            const latency = data.latencies[0]; // Primeiro (e único) valor
+    const maxRetries = 10;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`🏓 Executando ping real (tentativa ${attempt}/${maxRetries})...`);
             
-            console.log(`✅ Ping real executado: ${latency.toFixed(3)}ms`);
+            // Fazer UMA única chamada para ping com 1 pacote
+            const response = await fetchWithTimeoutAndRetry('/api/ping-real?count=1');
             
-            return {
-                latency: latency, // Valor único da latência
-                success: true,
-                isPingReal: true,
-                clientIP: data.clientIP
-            };
-            
-        } else {
-            console.warn('⚠️ Ping real falhou:', data.error || 'Erro desconhecido');
-            
-            // Fallback para HTTP se ping real falhar
-            console.log('🔄 Usando fallback HTTP...');
-            
-            try {
-                const start = performance.now();
-                const httpResponse = await fetch('/ping', { cache: 'no-cache' });
-                if (httpResponse.ok) {
-                    const httpLatency = performance.now() - start;
-                    console.log(`📡 HTTP Fallback: ${httpLatency.toFixed(3)}ms`);
-                    
-                    return {
-                        latency: httpLatency,
-                        success: true,
-                        isPingReal: false // Flag para identificar fallback HTTP
-                    };
-                } else {
-                    throw new Error('HTTP response não ok');
-                }
-            } catch (httpError) {
-                console.error('❌ HTTP Fallback também falhou:', httpError);
-                return {
-                    latency: null,
-                    success: false,
-                    error: 'Ping e HTTP indisponíveis',
-                    isPingReal: false
-                };
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
+            
+            const data = await response.json();
+            
+            if (data.success && data.latencies && data.latencies.length > 0) {
+                const latency = data.latencies[0]; // Primeiro (e único) valor
+                
+                console.log(`✅ Ping real executado: ${latency.toFixed(3)}ms (tentativa ${attempt})`);
+                
+                return {
+                    latency: latency, // Valor único da latência
+                    success: true,
+                    isPingReal: true,
+                    clientIP: data.clientIP
+                };
+                
+            } else {
+                throw new Error(data.error || 'Ping real falhou');
+            }
+            
+        } catch (error) {
+            console.warn(`⚠️ Ping tentativa ${attempt} falhou:`, error.message);
+            
+            if (attempt === maxRetries) {
+                // Última tentativa - tentar fallback HTTP
+                console.log('🔄 Usando fallback HTTP após todas as tentativas...');
+                
+                try {
+                    const start = performance.now();
+                    const httpResponse = await fetch('/ping', { cache: 'no-cache' });
+                    if (httpResponse.ok) {
+                        const httpLatency = performance.now() - start;
+                        console.log(`📡 HTTP Fallback: ${httpLatency.toFixed(3)}ms`);
+                        
+                        return {
+                            latency: httpLatency,
+                            success: true,
+                            isPingReal: false // Flag para identificar fallback HTTP
+                        };
+                    } else {
+                        throw new Error('HTTP response não ok');
+                    }
+                } catch (httpError) {
+                    console.error('❌ HTTP Fallback também falhou:', httpError);
+                    return {
+                        latency: null,
+                        success: false,
+                        error: 'Ping e HTTP indisponíveis após 10 tentativas',
+                        isPingReal: false
+                    };
+                }
+            }
+            
+            // Aguardar antes da próxima tentativa
+            await new Promise(resolve => setTimeout(resolve, attempt * 500));
         }
-        
-    } catch (error) {
-        console.error('❌ Erro no teste de ping real:', error);
-        return {
-            latency: null,
-            success: false,
-            error: error.message,
-            isPingReal: false
-        };
     }
+    
+    return {
+        latency: null,
+        success: false,
+        error: 'Todas as tentativas falharam',
+        isPingReal: false
+    };
 }
 
 
