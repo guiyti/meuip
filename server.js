@@ -582,7 +582,7 @@ ensureTestFileExists();
 const PORT = process.env.PORT || 80;
 const server = app.listen(PORT, () => {
     const serverIPs = getServerIPs();
-    console.log(`\n🚀 Servidor UFABC - Teste de Pilha Dupla rodando na porta ${PORT}:`);
+    console.log(`\n🚀 Network Speed Test Server rodando na porta ${PORT}:`);
     console.log(`📱 Local: http://localhost:${PORT}`);
     if (serverIPs.ipv4) {
         console.log(`🌐 IPv4: http://${serverIPs.ipv4}:${PORT}`);
@@ -590,5 +590,5 @@ const server = app.listen(PORT, () => {
     if (serverIPs.ipv6) {
         console.log(`🌍 IPv6: http://[${serverIPs.ipv6}]:${PORT}`);
     }
-    console.log(`\n💡 Para testar pilha dupla, acesse via qualquer dos endereços acima!`);
+    console.log('💡 Acesse via qualquer dos endereços acima para testar conectividade!');
 });

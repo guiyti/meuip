@@ -10,7 +10,8 @@
 
 <!-- Exemplo de screenshot (substitua por seu próprio arquivo se quiser) -->
 <p align="center">
-  <img src="docs/demo-screenshot.png" alt="Screenshot do teste em execução" width="700"/>
+  <img src="docs/img_download.png" alt="Teste de download em execução" width="320"/>
+  <img src="docs/img_teste_finalizado.png" alt="Tela após conclusão dos testes" width="320"/>
 </p>
 
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg) ![License](https://img.shields.io/badge/License-MIT-blue.svg)
