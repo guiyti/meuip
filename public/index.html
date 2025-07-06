@@ -1218,6 +1218,27 @@
             return recentValues.reduce((a, b) => a + b, 0) / recentValues.length;
         }
         
+        // Função simplificada para cálculo em tempo real (compatível com calculateRobustStatistics)
+        function calculateLiveStatistics(speeds, totalExpected) {
+            // Se não há dados válidos, retornar 0
+            if (speeds.length === 0) {
+                return 0;
+            }
+            
+            // Com poucas amostras (< 5), usar média simples
+            if (speeds.length < 5) {
+                return speeds.reduce((a, b) => a + b, 0) / speeds.length;
+            }
+            
+            // Ordenar para calcular mediana (consistente com resultado final)
+            const sorted = [...speeds].sort((a, b) => a - b);
+            
+            // Usar mediana simples durante o teste (mais estável que média)
+            const median = sorted[Math.floor(sorted.length / 2)];
+            
+            return median;
+        }
+        
         // Análise estatística robusta com detecção de outliers
         function calculateRobustStatistics(validSpeeds, totalTests) {
             // Se não há dados válidos, retornar 0
@@ -1500,9 +1521,9 @@
 
         // Controle de animação contínua
         const animationControl = {
-            download: { running: false, currentValue: 0, targetValue: 0, animationId: null },
-            upload: { running: false, currentValue: 0, targetValue: 0, animationId: null },
-            latency: { running: false, currentValue: 0, targetValue: 0, animationId: null }
+            download: { running: false, currentValue: 0, targetValue: 0, animationId: null, completeTime: null },
+            upload: { running: false, currentValue: 0, targetValue: 0, animationId: null, completeTime: null },
+            latency: { running: false, currentValue: 0, targetValue: 0, animationId: null, completeTime: null }
         };
 
         // Função para limpar histórico
@@ -1520,6 +1541,7 @@
                 animationControl[key].currentValue = 0;
                 animationControl[key].targetValue = 0;
                 animationControl[key].animationId = null;
+                animationControl[key].completeTime = null; // Reset tempo de completude
             });
         }
 
@@ -1545,22 +1567,31 @@
             console.log(`🎯 ${elementId}: Velocímetro iniciado - convergindo para a média conforme amostras são coletadas`);
         }
 
-        // Função para atualizar valores (calcula média em tempo real)
+        // Função para atualizar valores (usa MESMA lógica do resultado final)
         function updateLiveValue(elementId, value, unit, isLatency = false) {
             // Adicionar valor ao histórico
             valueHistory[elementId].push(value);
             
-            // Calcular média atual das amostras coletadas
+            // Calcular valor usando a MESMA lógica do resultado final
             const currentHistory = valueHistory[elementId];
-            const currentAverage = currentHistory.reduce((sum, val) => sum + val, 0) / currentHistory.length;
+            let currentValue;
             
-            // Atualizar valor alvo para animação contínua (agora é a média)
+            if (isLatency) {
+                // Para latência: usar média simples (igual ao resultado final)
+                currentValue = currentHistory.reduce((sum, val) => sum + val, 0) / currentHistory.length;
+            } else {
+                // Para download/upload: usar a MESMA lógica do calculateRobustStatistics
+                currentValue = calculateRobustStatistics(currentHistory, 12); // Usar função compatível
+            }
+            
+            // Atualizar valor alvo para animação contínua
             if (animationControl[elementId]) {
-                animationControl[elementId].targetValue = currentAverage;
+                animationControl[elementId].targetValue = currentValue;
             }
             
             // Log para debug
-            console.log(`📊 ${elementId}: Amostra ${currentHistory.length} = ${value.toFixed(isLatency ? 3 : 0)} ${unit}, Média atual = ${currentAverage.toFixed(isLatency ? 3 : 0)} ${unit}`);
+            const methodDesc = isLatency ? 'média' : 'estatística robusta';
+            console.log(`📊 ${elementId}: Amostra ${currentHistory.length} = ${value.toFixed(isLatency ? 3 : 0)} ${unit}, ${methodDesc} atual = ${currentValue.toFixed(isLatency ? 3 : 0)} ${unit}`);
         }
 
         // Função para animação contínua convergindo para a média
@@ -1601,24 +1632,47 @@
                 const difference = targetValue - control.currentValue;
                 control.currentValue += difference * convergenceSpeed;
                 
+                // Detectar se devemos parar as oscilações (teste completo)
+                const maxSamples = 12; // Número máximo de amostras esperadas (uniformizado para todos os testes)
+                const testComplete = samplesCount >= maxSamples;
+                
                 // Calcular oscilações baseadas na variação das amostras
                 const variation = history.length > 1 ? 
                     Math.abs(Math.max(...history) - Math.min(...history)) : 
                     targetValue * 0.1;
                 
-                // Oscilações diminuem conforme mais amostras são coletadas
-                const oscillationScale = Math.max(0.1, 1 - (samplesCount * 0.05));
-                const oscillationRange = Math.min(variation * 0.05, targetValue * 0.03) * oscillationScale;
+                let oscillationRange = 0;
                 
-                // Oscilações suaves representando incerteza
+                if (!testComplete) {
+                    // Durante o teste: oscilações diminuem conforme mais amostras são coletadas
+                    const oscillationScale = Math.max(0.1, 1 - (samplesCount * 0.05));
+                    oscillationRange = Math.min(variation * 0.05, targetValue * 0.03) * oscillationScale;
+                } else {
+                    // Teste completo: convergir rapidamente para a média SEM oscilações
+                    const timeSinceComplete = (Date.now() - (control.completeTime || Date.now())) * 0.001;
+                    if (!control.completeTime) {
+                        control.completeTime = Date.now();
+                    }
+                    
+                    // Eliminar oscilações após o teste completar
+                    const decayFactor = Math.max(0, 1 - (timeSinceComplete * 3)); // Decaimento em 0.33 segundos
+                    oscillationRange = Math.min(variation * 0.02, targetValue * 0.01) * decayFactor;
+                }
+                
+                // Oscilações suaves representando incerteza (ou zero se teste completo)
                 const wave1 = Math.sin(time * 1.2) * oscillationRange * 0.6;
                 const wave2 = Math.sin(time * 1.8) * oscillationRange * 0.4;
                 
-                // Valor final = convergência + oscilações pequenas
+                // Valor final = convergência + oscilações (que diminuem para zero)
                 finalValue = control.currentValue + wave1 + wave2;
                 
                 // Garantir que não seja negativo
                 finalValue = Math.max(0, finalValue);
+                
+                // Log para debug quando o teste está completo
+                if (testComplete && oscillationRange < 0.01) {
+                    console.log(`🎯 ${elementId}: Velocímetro estabilizado na média final ${targetValue.toFixed(isLatency ? 3 : 0)} ${unit}`);
+                }
             }
             
             // Formatar e exibir valor
@@ -1654,6 +1708,7 @@
                 control.running = false;
                 control.currentValue = 0;
                 control.targetValue = 0;
+                control.completeTime = null; // Reset tempo de completude
             }
             
             const element = document.getElementById(`${elementId}-live`);
@@ -1665,8 +1720,8 @@
             console.log(`🛑 Animação contínua parada para ${elementId}`);
         }
 
-        // Função para definir resultado final com parada imediata e exibição da média
-        function setFinalResult(elementId, value, unit, isLatency = false) {
+        // Função para definir resultado final com TOTAL CONSISTÊNCIA do velocímetro
+        function setFinalResult(elementId, serverValue, unit, isLatency = false) {
             const resultElement = document.getElementById(`${elementId}-result`);
             const liveElement = document.getElementById(`${elementId}-live`);
             
@@ -1687,12 +1742,28 @@
                 }
             }
             
-            // Log final mostrando o comportamento do velocímetro
-            const samplesCount = valueHistory[elementId].length;
-            console.log(`🎯 ${elementId} finalizado: ${samplesCount} amostras coletadas, média final = ${value.toFixed(isLatency ? 3 : 0)} ${unit}`);
+            // USAR O MESMO VALOR que o velocímetro estava convergindo para garantir TOTAL CONSISTÊNCIA
+            const currentHistory = valueHistory[elementId];
+            let finalValue;
             
-            // Mostrar IMEDIATAMENTE a média final (sem animação prévia)
-            completeFinalResult(elementId, value, unit, isLatency);
+            if (currentHistory.length > 0) {
+                if (isLatency) {
+                    // Para latência: média simples (igual ao servidor)
+                    finalValue = currentHistory.reduce((sum, val) => sum + val, 0) / currentHistory.length;
+                } else {
+                    // Para download/upload: usar mesma lógica robusta do frontend
+                    finalValue = calculateRobustStatistics(currentHistory, 12);
+                }
+                
+                console.log(`🎯 ${elementId} finalizado: ${currentHistory.length} amostras, valor velocímetro = ${finalValue.toFixed(isLatency ? 3 : 0)} ${unit}, valor servidor = ${serverValue.toFixed(isLatency ? 3 : 0)} ${unit}`);
+            } else {
+                // Fallback para valor do servidor se não há histórico
+                finalValue = serverValue;
+                console.log(`🎯 ${elementId} finalizado: sem histórico local, usando valor servidor = ${serverValue.toFixed(isLatency ? 3 : 0)} ${unit}`);
+            }
+            
+            // Mostrar IMEDIATAMENTE o valor final consistente
+            completeFinalResult(elementId, finalValue, unit, isLatency);
         }
 
         // Função removida - não é mais necessária pois agora mostramos o resultado final imediatamente
