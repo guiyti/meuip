@@ -190,6 +190,48 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .result-live {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #666;
+            margin-top: 0.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.8;
+            transition: all 0.4s ease;
+            transform: translateY(0);
+        }
+
+        .result-live.updating {
+            color: #0066cc;
+            transform: scale(1.05);
+            opacity: 1;
+        }
+
+        .result-value.final {
+            animation: finalPulse 0.8s ease;
+            color: #059b2e;
+            text-shadow: 0 0 8px rgba(5, 155, 46, 0.3);
+        }
+
+        @keyframes finalPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes numberRoll {
+            0% { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .result-value.rolling {
+            animation: numberRoll 0.5s ease;
         }
 
 
@@ -307,7 +349,7 @@
         }
 
         /* Layout minimalista redesenhado */
-        .control-bar {
+            .control-bar {
             position: relative;
             background: #ffffff;
             border: 1px solid #e0e6ed;
@@ -317,9 +359,9 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             width: 100%;
             max-width: 1000px;
-        }
-        
-        .connection-badge {
+            }
+
+            .connection-badge {
             position: absolute;
             top: 12px;
             right: 12px;
@@ -578,135 +620,6 @@
                 padding: 0.25rem 0.5rem;
             }
         }
-
-        /* Velocímetros */
-        .speedometer-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .speedometer {
-            position: relative;
-            padding: 12px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border: 3px solid #dee2e6;
-            border-radius: 50%;
-            min-height: 80px;
-            min-width: 80px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-
-        .speedometer.testing {
-            border-color: #17a2b8;
-            background: linear-gradient(135deg, #e8f6f8 0%, #d1ecf1 100%);
-            animation: pulse 2s infinite;
-        }
-
-        .speedometer.final {
-            border-color: #28a745;
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
-            animation: finalGlow 1s ease-in-out;
-        }
-
-        .speedometer-value {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #495057;
-            line-height: 1;
-            transition: all 0.5s ease;
-            text-align: center;
-        }
-
-        .speedometer.testing .speedometer-value {
-            color: #17a2b8;
-        }
-
-        .speedometer.final .speedometer-value {
-            color: #155724;
-            transform: scale(1.1);
-        }
-
-        .speedometer-unit {
-            font-size: 0.75rem;
-            color: #6c757d;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 2px;
-        }
-
-        .speedometer.testing .speedometer-unit {
-            color: #17a2b8;
-        }
-
-        .speedometer.final .speedometer-unit {
-            color: #155724;
-        }
-
-        .final-result {
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.5s ease;
-            font-size: 1.1rem !important;
-            font-weight: 600 !important;
-            color: #28a745 !important;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-
-        .final-result.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Animações */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes finalGlow {
-            0% { 
-                transform: scale(1);
-                box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
-            }
-            50% { 
-                transform: scale(1.1);
-                box-shadow: 0 8px 16px rgba(40, 167, 69, 0.5);
-            }
-            100% { 
-                transform: scale(1);
-                box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
-            }
-        }
-
-        @keyframes countUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .speedometer-value.updating {
-            animation: countUp 0.3s ease-out;
-        }
-
-        /* Responsividade */
-        @media (max-width: 768px) {
-            .speedometer {
-                min-height: 70px;
-                min-width: 70px;
-            }
-            .speedometer-value {
-                font-size: 1.2rem;
-            }
-        }
     </style>
 </head>
 <body>
@@ -750,7 +663,7 @@
                 <div class="ip-block ipv4-block">
                     <label class="ip-label">IPv4</label>
                     <div class="ip-value" id="ipv4">Carregando...</div>
-                </div>
+            </div>
                 <div class="ip-block ipv6-block">
                     <label class="ip-label">IPv6</label>
                     <div class="ip-value ipv6-value" id="ipv6">Carregando...</div>
@@ -762,7 +675,7 @@
                     </button>
                     <button id="explain-btn" class="info-button" type="button" data-bs-toggle="modal" data-bs-target="#explainModal" title="Como funciona o teste?">
                         <i class="fas fa-info"></i>
-                    </button>
+                </button>
                 </div>
             </div>
         </div>
@@ -777,39 +690,24 @@
                     <div class="mini-chart-container">
                         <canvas id="download-chart"></canvas>
                     </div>
-                    <div class="speedometer-container">
-                        <div class="speedometer" id="download-speedometer">
-                            <div class="speedometer-value" id="download-live-value">0</div>
-                            <div class="speedometer-unit">Mbps</div>
-                        </div>
-                        <div class="result-value final-result" id="download-result">-- Mbps</div>
-                    </div>
+                    <div class="result-value" id="download-result">-- Mbps</div>
+                    <div class="result-live" id="download-live">aguardando...</div>
                 </div>
                 <div class="result-item">
                     <div class="result-label">Upload</div>
                     <div class="mini-chart-container">
                         <canvas id="upload-chart"></canvas>
                     </div>
-                    <div class="speedometer-container">
-                        <div class="speedometer" id="upload-speedometer">
-                            <div class="speedometer-value" id="upload-live-value">0</div>
-                            <div class="speedometer-unit">Mbps</div>
-                        </div>
-                        <div class="result-value final-result" id="upload-result">-- Mbps</div>
-                    </div>
+                    <div class="result-value" id="upload-result">-- Mbps</div>
+                    <div class="result-live" id="upload-live">aguardando...</div>
                 </div>
                 <div class="result-item">
                     <div class="result-label">Latência</div>
                     <div class="mini-chart-container">
                         <canvas id="latency-chart"></canvas>
                     </div>
-                    <div class="speedometer-container">
-                        <div class="speedometer" id="latency-speedometer">
-                            <div class="speedometer-value" id="latency-live-value">0</div>
-                            <div class="speedometer-unit">ms</div>
-                        </div>
-                        <div class="result-value final-result" id="latency-result">-- ms</div>
-                    </div>
+                    <div class="result-value" id="latency-result">-- ms</div>
+                    <div class="result-live" id="latency-live">aguardando...</div>
                 </div>
             </div>
         </div>
@@ -1300,13 +1198,6 @@
             chartLabels: [],
         };
 
-        // --- Velocímetro Configuration ---
-        const speedometerConfig = {
-            animationDuration: 800,
-            currentValues: { download: 0, upload: 0, latency: 0 },
-            isAnimating: { download: false, upload: false, latency: false }
-        };
-
         // --- Funções Auxiliares Robustas ---
         
         // Interpolação ou fallback para valores faltantes
@@ -1325,92 +1216,6 @@
             // ou a média dos últimos 2 valores
             const recentValues = validData.slice(-2);
             return recentValues.reduce((a, b) => a + b, 0) / recentValues.length;
-        }
-
-        // --- Funções do Velocímetro ---
-        
-        function animateSpeedometerValue(type, targetValue, isLatency = false) {
-            if (speedometerConfig.isAnimating[type]) return;
-            
-            const valueElement = document.getElementById(`${type}-live-value`);
-            const speedometer = document.getElementById(`${type}-speedometer`);
-            
-            const startValue = speedometerConfig.currentValues[type];
-            const difference = targetValue - startValue;
-            const startTime = performance.now();
-            
-            speedometerConfig.isAnimating[type] = true;
-            
-            function updateValue(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / speedometerConfig.animationDuration, 1);
-                
-                // Easing function (ease-out)
-                const easeProgress = 1 - Math.pow(1 - progress, 3);
-                
-                const currentValue = startValue + (difference * easeProgress);
-                speedometerConfig.currentValues[type] = currentValue;
-                
-                // Formatação adequada
-                if (isLatency) {
-                    valueElement.textContent = currentValue.toFixed(1);
-                } else {
-                    valueElement.textContent = Math.round(currentValue);
-                }
-                
-                // Adicionar animação visual
-                valueElement.classList.add('updating');
-                setTimeout(() => valueElement.classList.remove('updating'), 300);
-                
-                if (progress < 1) {
-                    requestAnimationFrame(updateValue);
-                } else {
-                    speedometerConfig.isAnimating[type] = false;
-                    speedometerConfig.currentValues[type] = targetValue;
-                }
-            }
-            
-            requestAnimationFrame(updateValue);
-        }
-
-        function setSpeedometerState(type, state) {
-            const speedometer = document.getElementById(`${type}-speedometer`);
-            speedometer.classList.remove('testing', 'final');
-            
-            if (state === 'testing') {
-                speedometer.classList.add('testing');
-            } else if (state === 'final') {
-                speedometer.classList.add('final');
-            }
-        }
-
-        function resetSpeedometer(type) {
-            const valueElement = document.getElementById(`${type}-live-value`);
-            const finalElement = document.getElementById(`${type}-result`);
-            
-            valueElement.textContent = '0';
-            finalElement.textContent = type === 'latency' ? '-- ms' : '-- Mbps';
-            finalElement.classList.remove('show');
-            
-            speedometerConfig.currentValues[type] = 0;
-            setSpeedometerState(type, 'idle');
-        }
-
-        function showFinalResult(type, value, isLatency = false) {
-            const finalElement = document.getElementById(`${type}-result`);
-            
-            // Formatação adequada
-            if (isLatency) {
-                finalElement.textContent = `${value.toFixed(3)} ms`;
-            } else {
-                finalElement.textContent = `${Math.round(value)} Mbps`;
-            }
-            
-            // Animação de entrada
-            setTimeout(() => {
-                finalElement.classList.add('show');
-                setSpeedometerState(type, 'final');
-            }, 200);
         }
         
         // Análise estatística robusta com detecção de outliers
@@ -1641,10 +1446,24 @@
 
         
         function resetUI() {
-            // Reset speedometers
-            resetSpeedometer('download');
-            resetSpeedometer('upload');
-            resetSpeedometer('latency');
+            // Reset results
+            document.getElementById('download-result').textContent = '-- Mbps';
+            document.getElementById('upload-result').textContent = '-- Mbps';
+            document.getElementById('latency-result').textContent = '-- ms';
+            
+            // Reset live values
+            document.getElementById('download-live').textContent = 'aguardando...';
+            document.getElementById('upload-live').textContent = 'aguardando...';
+            document.getElementById('latency-live').textContent = 'aguardando...';
+            
+            // Remove animation classes
+            document.getElementById('download-result').classList.remove('final', 'rolling');
+            document.getElementById('upload-result').classList.remove('final', 'rolling');
+            document.getElementById('latency-result').classList.remove('final', 'rolling');
+            
+            document.getElementById('download-live').classList.remove('updating');
+            document.getElementById('upload-live').classList.remove('updating');
+            document.getElementById('latency-live').classList.remove('updating');
             
             // Reset charts
             testConfig.chartLabels = [];
@@ -1657,6 +1476,67 @@
             chart.data.labels = [];
             chart.data.datasets[0].data = [];
             chart.update('none');
+        }
+
+        // Função para atualizar valores em tempo real com animação
+        function updateLiveValue(elementId, value, unit, isLatency = false) {
+            const liveElement = document.getElementById(`${elementId}-live`);
+            
+            if (!liveElement) return;
+            
+            // Formatar valor baseado no tipo
+            let displayValue;
+            if (isLatency) {
+                displayValue = `${value.toFixed(3)} ${unit}`;
+            } else {
+                displayValue = `${Math.round(value)} ${unit}`;
+            }
+            
+            // Aplicar animação de atualização
+            liveElement.classList.add('updating');
+            liveElement.textContent = displayValue;
+            
+            // Remover classe de animação após transição
+            setTimeout(() => {
+                liveElement.classList.remove('updating');
+            }, 400);
+        }
+
+        // Função para definir resultado final com animação
+        function setFinalResult(elementId, value, unit, isLatency = false) {
+            const resultElement = document.getElementById(`${elementId}-result`);
+            const liveElement = document.getElementById(`${elementId}-live`);
+            
+            if (!resultElement) return;
+            
+            // Formatar valor final
+            let displayValue;
+            if (isLatency) {
+                displayValue = `${value.toFixed(3)} ${unit}`;
+            } else {
+                displayValue = `${Math.round(value)} ${unit}`;
+            }
+            
+            // Animação de "rolling" para o resultado final
+            resultElement.classList.add('rolling');
+            resultElement.textContent = displayValue;
+            
+            // Ocultar valor ao vivo suavemente
+            if (liveElement) {
+                liveElement.style.opacity = '0.3';
+                liveElement.textContent = 'finalizado';
+            }
+            
+            // Aplicar animação final após rolling
+            setTimeout(() => {
+                resultElement.classList.remove('rolling');
+                resultElement.classList.add('final');
+                
+                // Remover animação final após completar
+                setTimeout(() => {
+                    resultElement.classList.remove('final');
+                }, 800);
+            }, 500);
         }
 
         async function runTest(testName, testFunction) {
@@ -1678,9 +1558,6 @@
             const rawData = []; // Para análise estatística
             testConfig.chartLabels = Array.from({ length: dataPoints }, (_, i) => `${i + 1}`);
             
-            // Ativar estado de teste no velocímetro
-            setSpeedometerState('download', 'testing');
-            
             // Intervalo entre testes para evitar sobrecarga
             const intervalMs = 800; // Aumentado para reduzir concorrência
 
@@ -1690,19 +1567,16 @@
                 const speed = await testDownloadSpeed();
                 rawData.push(speed); // Guarda resultado original (null ou número)
                 
-                let displaySpeed = 0;
                 if (speed !== null && speed > 0) {
                     downloadData.push(speed);
-                    displaySpeed = speed;
+                    
+                    // Atualizar valor ao vivo com animação
+                    updateLiveValue('download', speed, 'Mbps');
                 } else {
                     // Para o gráfico, usar interpolação ou último valor válido
                     const interpolatedValue = interpolateOrFallback(downloadData, i);
                     downloadData.push(interpolatedValue);
-                    displaySpeed = interpolatedValue;
                 }
-                
-                // Atualizar velocímetro em tempo real com animação suave
-                animateSpeedometerValue('download', displaySpeed, false);
                 
                 // Atualizar gráfico em tempo real
                 updateMiniChart(downloadChart, testConfig.chartLabels.slice(0, i + 1), downloadData);
@@ -1717,8 +1591,8 @@
             const validSpeeds = rawData.filter(speed => speed !== null && speed > 0);
             const finalResult = calculateRobustStatistics(validSpeeds, dataPoints);
             
-            // Mostrar resultado final com animação
-            showFinalResult('download', finalResult, false);
+            // Definir resultado final com animação
+            setFinalResult('download', finalResult, 'Mbps');
             
             // Log detalhado
             const successRate = `${validSpeeds.length}/${dataPoints}`;
@@ -1730,9 +1604,6 @@
             const uploadData = [];
             const rawData = []; // Para análise estatística
             
-            // Ativar estado de teste no velocímetro
-            setSpeedometerState('upload', 'testing');
-            
             // Intervalo entre testes para evitar sobrecarga
             const intervalMs = 1000; // Upload é mais lento, intervalo maior
 
@@ -1742,19 +1613,16 @@
                 const speed = await testUploadSpeed();
                 rawData.push(speed); // Guarda resultado original (null ou número)
                 
-                let displaySpeed = 0;
                 if (speed !== null && speed > 0) {
                     uploadData.push(speed);
-                    displaySpeed = speed;
+                    
+                    // Atualizar valor ao vivo com animação
+                    updateLiveValue('upload', speed, 'Mbps');
                 } else {
                     // Para o gráfico, usar interpolação ou último valor válido
                     const interpolatedValue = interpolateOrFallback(uploadData, i);
                     uploadData.push(interpolatedValue);
-                    displaySpeed = interpolatedValue;
                 }
-                
-                // Atualizar velocímetro em tempo real com animação suave
-                animateSpeedometerValue('upload', displaySpeed, false);
                 
                 // Atualizar gráfico em tempo real
                 updateMiniChart(uploadChart, testConfig.chartLabels.slice(0, i + 1), uploadData);
@@ -1769,8 +1637,8 @@
             const validSpeeds = rawData.filter(speed => speed !== null && speed > 0);
             const finalResult = calculateRobustStatistics(validSpeeds, dataPoints);
             
-            // Mostrar resultado final com animação
-            showFinalResult('upload', finalResult, false);
+            // Definir resultado final com animação
+            setFinalResult('upload', finalResult, 'Mbps');
             
             // Log detalhado
             const successRate = `${validSpeeds.length}/${dataPoints}`;
@@ -1782,9 +1650,6 @@
             const intervalMs = 500; // Delay entre pings
             const latencyData = [];
             
-            // Ativar estado de teste no velocímetro
-            setSpeedometerState('latency', 'testing');
-            
             // Executar 12 pings individuais em tempo real
             for (let i = 0; i < dataPoints; i++) {
                 // Log de progresso no console
@@ -1793,22 +1658,16 @@
                 // Executar ping individual
                 const result = await latencyTest();
                 
-                let currentLatency = null;
                 if (result && result.success && result.latency !== null) {
                     latencyData.push(result.latency);
-                    currentLatency = result.latency;
                     console.log(`✅ Ping ${i + 1}: ${result.latency.toFixed(3)}ms`);
+                    
+                    // Atualizar valor ao vivo com animação
+                    updateLiveValue('latency', result.latency, 'ms', true);
                 } else {
                     // Adicionar null para manter consistência
                     latencyData.push(null);
                     console.warn(`⚠️ Ping ${i + 1} falhou: ${result.error || 'Erro desconhecido'}`);
-                }
-                
-                // Atualizar velocímetro com o valor atual ou média dos válidos
-                const validLatencies = latencyData.filter(l => l !== null && l > 0);
-                if (validLatencies.length > 0) {
-                    const currentAvg = validLatencies.reduce((a, b) => a + b, 0) / validLatencies.length;
-                    animateSpeedometerValue('latency', currentAvg, true);
                 }
                 
                 // Atualizar gráfico em tempo real
@@ -1830,12 +1689,8 @@
                 const minLatency = Math.min(...validData);
                 const maxLatency = Math.max(...validData);
                 
-                // Usar mediana como resultado final (mais robusta para estatísticas de rede)
-                // Mediana é menos sensível a outliers que média, essencial para latência
-                const finalResult = medianLatency;
-                
-                // Mostrar resultado final com animação
-                showFinalResult('latency', finalResult, true);
+                // Definir resultado final com animação
+                setFinalResult('latency', avgLatency, 'ms', true);
                 
                 // Log estatísticas completas
                 const testType = validData.length > 0 && latencyData.find(d => d !== null) ? 
@@ -1843,8 +1698,16 @@
                 const successRate = `${validData.length}/${dataPoints}`;
                 console.log(`📊 ${testType} (${successRate}) - Média: ${avgLatency.toFixed(3)}ms, Mediana: ${medianLatency.toFixed(3)}ms, Min: ${minLatency.toFixed(3)}ms, Max: ${maxLatency.toFixed(3)}ms`);
             } else {
-                showFinalResult('latency', 0, true);
-                document.getElementById('latency-result').textContent = 'Sem resposta';
+                // Caso todos os pings falhem
+                const resultElement = document.getElementById('latency-result');
+                const liveElement = document.getElementById('latency-live');
+                
+                resultElement.textContent = 'Sem resposta';
+                if (liveElement) {
+                    liveElement.textContent = 'falha na conexão';
+                    liveElement.style.color = '#dc3545';
+                }
+                
                 console.warn('❌ Todos os pings falharam');
             }
         }
