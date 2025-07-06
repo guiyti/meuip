@@ -49,8 +49,23 @@
         });
     }
 
+    function replaceLegacyDomain() {
+        const legacy = 'meuip.ufabc.int.br';
+        if (legacy === baseHost) return;
+        document.querySelectorAll('*').forEach(el=>{
+            if(el.childNodes.length===1&&el.childNodes[0].nodeType===3){
+                const t=el.textContent;
+                if(t.includes(legacy)) el.textContent=t.replaceAll(legacy, baseHost);
+            }
+            Array.from(el.attributes||[]).forEach(attr=>{
+                if(attr.value.includes(legacy)) el.setAttribute(attr.name,attr.value.replaceAll(legacy, baseHost));
+            });
+        });
+    }
+
     // Executar após logo/textos para garantir substituição completa
     replaceHostPlaceholders();
+    replaceLegacyDomain();
 
     // Dispatch para que outros módulos saibam
     window.dispatchEvent(new Event('configLoaded'));

@@ -11,7 +11,7 @@ param(
 )
 
 # Configurações
-$HOST_URL = "meuip.ufabc.int.br"
+$HOST_URL = "__HOST__"
 $TIMEOUT = 15           # Timeout para download (segundos)
 $UPLOAD_TIMEOUT = 30    # Timeout para upload (segundos)
 $SCRIPT_VERSION = "1.3"
@@ -24,7 +24,7 @@ function Remove-ScriptFile {
             Remove-Item $MyInvocation.ScriptName -Force
             Write-Host "✅ Script removido com sucesso" -ForegroundColor Green
             Write-Host "💡 Para executar novamente, baixe a versão atualizada:" -ForegroundColor Blue
-            Write-Host "   curl -O http://meuip.ufabc.int.br/validate_speed.ps1 && powershell -ExecutionPolicy Bypass -File validate_speed.ps1" -ForegroundColor Yellow
+            Write-Host "   curl -O http://__HOST__/validate_speed.ps1 && powershell -ExecutionPolicy Bypass -File validate_speed.ps1" -ForegroundColor Yellow
         }
         catch {
             Write-Host "⚠️ Não foi possível remover o script automaticamente" -ForegroundColor Yellow

@@ -8,7 +8,7 @@
 # =============================================================================
 
 # Configurações
-HOST="meuip.ufabc.int.br"
+HOST="__HOST__"
 TESTS=${1:-12}  # Número de testes (padrão: 12)
 TIMEOUT=15      # Timeout para download
 UPLOAD_TIMEOUT=30  # Timeout para upload
@@ -27,7 +27,7 @@ cleanup() {
         rm -f "$0"
         echo -e "${GREEN}✅ Script removido com sucesso${NC}"
         echo -e "${BLUE}💡 Para executar novamente, baixe a versão atualizada:${NC}"
-        echo -e "   ${YELLOW}curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh${NC}"
+        echo -e "   ${YELLOW}curl -O http://__HOST__/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh${NC}"
     fi
 }
 

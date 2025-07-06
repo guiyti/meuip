@@ -6,7 +6,7 @@ Este script bash permite que especialistas em rede validem e comparem os resulta
 
 ```bash
 # Baixar, executar e remover automaticamente
-curl -O http://meuip.ufabc.int.br/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh
+curl -O http://__HOST__/validate_speed.sh && chmod +x validate_speed.sh && ./validate_speed.sh
 ```
 
 **Nota**: O script se auto-deleta após a execução para garantir que sempre seja baixada a versão mais atualizada.
@@ -117,7 +117,7 @@ O script implementa retry para todas as métricas:
 ```bash
 # Máximo 10 tentativas por teste
 curl -s -o /dev/null -w "%{speed_download}" --max-time 15 \
-"http://meuip.ufabc.int.br/testfile?cb=TIMESTAMP"
+"http://__HOST__/testfile?cb=TIMESTAMP"
 ```
 
 **Upload (com retry robusto):**
@@ -125,16 +125,16 @@ curl -s -o /dev/null -w "%{speed_download}" --max-time 15 \
 # Máximo 10 tentativas por teste
 dd if=/dev/zero bs=1024 count=1024 2>/dev/null | \
 curl -s -X POST --data-binary @- -w "%{speed_upload}" --max-time 30 \
-"http://meuip.ufabc.int.br/upload?cb=TIMESTAMP"
+"http://__HOST__/upload?cb=TIMESTAMP"
 ```
 
 **Latência (com retry robusto):**
 ```bash
 # macOS - 12 pings, máximo 10 tentativas
-ping -c 12 -t 5 meuip.ufabc.int.br
+ping -c 12 -t 5 __HOST__
 
 # Linux - 12 pings, máximo 10 tentativas
-ping -c 12 -W 2 meuip.ufabc.int.br
+ping -c 12 -W 2 __HOST__
 ```
 
 ## 📝 Debugging
@@ -151,20 +151,20 @@ bash -x validate_speed.sh
 ### Script PowerShell Nativo
 ```powershell
 # Baixar e executar script PowerShell
-curl -O http://meuip.ufabc.int.br/validate_speed.ps1
+curl -O http://__HOST__/validate_speed.ps1
 powershell -ExecutionPolicy Bypass -File validate_speed.ps1
 ```
 
 ### Comandos Individuais Windows
 ```cmd
 # Download (CMD/PowerShell)
-curl -s -o nul -w "%{speed_download}" http://meuip.ufabc.int.br/testfile
+curl -s -o nul -w "%{speed_download}" http://__HOST__/testfile
 
 # Upload (CMD com arquivo temporário)
-fsutil file createnew temp1mb.dat 1048576 && curl -X POST -T temp1mb.dat -w "%{speed_upload}" http://meuip.ufabc.int.br/upload && del temp1mb.dat
+fsutil file createnew temp1mb.dat 1048576 && curl -X POST -T temp1mb.dat -w "%{speed_upload}" http://__HOST__/upload && del temp1mb.dat
 
 # Latência (CMD/PowerShell)
-ping -n 12 meuip.ufabc.int.br
+ping -n 12 __HOST__
 ```
 
 ### Alternativas para Windows
@@ -205,8 +205,8 @@ brew install bc
 ```
 
 ### Timeout nos testes
-- Verifique conectividade: `ping meuip.ufabc.int.br`
-- Teste curl manual: `curl -I http://meuip.ufabc.int.br`
+- Verifique conectividade: `ping __HOST__`
+- Teste curl manual: `curl -I http://__HOST__`
 - Aumentar timeout no script
 
 ### Taxa de sucesso baixa

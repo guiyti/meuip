@@ -32,23 +32,27 @@ function ensureTestFileExists() {
     }
 }
 
+// Helper para servir script com host dinâmico
+function serveScriptWithHost(filePath, res, fileName) {
+    const raw = fs.readFileSync(filePath, 'utf8');
+    const host = res.req.headers.host;
+    const content = raw.replace(/__HOST__/g, host);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.send(content);
+}
+
 // Servir a página HTML estática
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Servir script de validação para usuários avançados
 app.get('/validate_speed.sh', (req, res) => {
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'attachment; filename="validate_speed.sh"');
-    res.sendFile(path.join(__dirname, 'validate_speed.sh'));
+    serveScriptWithHost(path.join(__dirname, 'validate_speed.sh'), res, 'validate_speed.sh');
 });
 
-// Servir script PowerShell de validação para usuários Windows
 app.get('/validate_speed.ps1', (req, res) => {
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'attachment; filename="validate_speed.ps1"');
-    res.sendFile(path.join(__dirname, 'validate_speed.ps1'));
+    serveScriptWithHost(path.join(__dirname, 'validate_speed.ps1'), res, 'validate_speed.ps1');
 });
 
 // Servir arquivo de configuração (define qual arquivo usar via ENV)
