@@ -621,6 +621,7 @@
             }
         }
     </style>
+    <script type="module" src="config-loader.js"></script>
 </head>
 <body>
     <header class="header-banner">
@@ -628,7 +629,7 @@
             <div class="row w-100">
                 <div class="col-12 col-md-2 site-logo py-3">
                     <a href="https://ufabc.edu.br/">
-                        <img class="img-fluid" alt="Logo Universidade Federal do ABC - UFABC" src="https://nti.ufabc.edu.br/wp-content/themes/NTI-theme/images/logo2.png">
+                        <img id="companyLogo" class="img-fluid" alt="Logo" src="https://nti.ufabc.edu.br/wp-content/themes/NTI-theme/images/logo2.png">
                     </a>
                 </div>
                 <div class="col-sm-12 col-md-10">
@@ -637,11 +638,11 @@
                             <div class="row">
                                 <div class="col-12">
                                     <div class="title-header">
-                                        <h1><a href="https://nti.ufabc.edu.br/">Núcleo de Tecnologia da Informação</a></h1>
+                                        <h1 data-company-name>Núcleo de Tecnologia da Informação</h1>
                                         <h2 class="description-header">Universidade Federal do ABC</h2>
                                     </div>
                                     <div class="test-subtitle">
-                                        <i class="fas fa-network-wired"></i> Sistema de Teste de Velocidade da UFABCnet
+                                        <i class="fas fa-network-wired"></i> Sistema de Teste de Velocidade da <span data-app-name>UFABCnet</span>
                                     </div>
                                 </div>
                             </div>
@@ -1418,20 +1419,25 @@
         }
 
         function updateConnectionBadges(ipv4, ipv6) {
-            // Verificar se é VPN
+            const cfg = window.appConfig || {};
+            const vpnRanges = cfg.network?.vpnRanges || ['172.17.4.'];
+            const vpnLabel = cfg.ui?.vpnLabel || 'VPN';
+            const directLabel = cfg.ui?.directLabel || 'Rede interna';
+
             let isVpn = false;
-            let networkType = 'rede interna';
-            
-            if (ipv4 && ipv4.includes('172.17.4.')) {
-                isVpn = true;
-                networkType = 'VPN institucional';
+            let networkType = directLabel;
+
+            if (ipv4) {
+                const match = vpnRanges.some(prefix => ipv4.startsWith(prefix));
+                if (match) {
+                    isVpn = true;
+                    networkType = vpnLabel;
+                }
             }
-            
-            // Criar badge moderno com ícone
-            const icon = isVpn ? 
-                '<i class="fas fa-shield-alt connection-status-icon"></i>' : 
+
+            const icon = isVpn ?
+                '<i class="fas fa-shield-alt connection-status-icon"></i>' :
                 '<i class="fas fa-network-wired connection-status-icon"></i>';
-            
             connectionBadge.innerHTML = `${icon}${networkType}`;
             connectionBadge.className = `connection-badge ${isVpn ? 'badge-vpn' : 'badge-direct'}`;
         }

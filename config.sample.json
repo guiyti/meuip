@@ -1,0 +1,26 @@
+{
+  "company": {
+    "name": "GenericNet",
+    "logo": "/assets/logo.svg",
+    "primaryColor": "#005EB8",
+    "secondaryColor": "#003D7A",
+    "accentColor": "#F5A623"
+  },
+  "network": {
+    "testFileSizeKB": 1024,
+    "downloadEndpoint": "/testfile",
+    "uploadEndpoint": "/upload",
+    "pingCount": 12,
+    "dataPoints": 12,
+    "vpnRanges": []
+  },
+  "ui": {
+    "showIPv4": true,
+    "showIPv6": true,
+    "defaultLanguage": "en-US",
+    "appName": "MyNet",
+    "pageTitle": "MyNet – Network Speed Test",
+    "vpnLabel": "Corporate VPN",
+    "directLabel": "Internal network"
+  }
+} 

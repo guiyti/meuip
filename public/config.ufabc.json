@@ -1,0 +1,26 @@
+{
+  "company": {
+    "name": "Universidade Federal do ABC",
+    "logo": "https://nti.ufabc.edu.br/wp-content/themes/NTI-theme/images/logo2.png",
+    "primaryColor": "#05672E",
+    "secondaryColor": "#03441F",
+    "accentColor": "#FFD200"
+  },
+  "network": {
+    "testFileSizeKB": 1024,
+    "downloadEndpoint": "/testfile",
+    "uploadEndpoint": "/upload",
+    "pingCount": 12,
+    "dataPoints": 12,
+    "vpnRanges": ["172.17.4."]
+  },
+  "ui": {
+    "showIPv4": true,
+    "showIPv6": true,
+    "defaultLanguage": "pt-BR",
+    "appName": "UFABCnet",
+    "pageTitle": "UFABC – Teste de Desempenho da Rede",
+    "vpnLabel": "VPN Institucional",
+    "directLabel": "Rede interna"
+  }
+} 

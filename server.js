@@ -51,6 +51,12 @@ app.get('/validate_speed.ps1', (req, res) => {
     res.sendFile(path.join(__dirname, 'validate_speed.ps1'));
 });
 
+// Servir arquivo de configuração (define qual arquivo usar via ENV)
+const CONFIG_FILE = process.env.CONFIG_FILE || path.join(__dirname, 'public', 'config.ufabc.json');
+app.get('/config.json', (req, res) => {
+    res.sendFile(CONFIG_FILE);
+});
+
 // API para obter informações do servidor
 app.get('/api/server-info', (req, res) => {
     res.json(getServerIPs());

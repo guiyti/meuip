@@ -474,4 +474,14 @@ export {
     config
 };
 
+window.addEventListener('configLoaded', () => {
+    if (window.appConfig?.network) {
+        const net = window.appConfig.network;
+        config.testFileSize = (net.testFileSizeKB || 1024) * 1024;
+        config.dataPoints     = net.dataPoints || 12;
+        config.pingCount      = net.pingCount || 12;
+        console.log('⚙️ Configurações do JSON aplicadas ao módulo network-tests:', net);
+    }
+});
+
 
