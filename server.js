@@ -44,6 +44,13 @@ app.get('/validate_speed.sh', (req, res) => {
     res.sendFile(path.join(__dirname, 'validate_speed.sh'));
 });
 
+// Servir script PowerShell de validação para usuários Windows
+app.get('/validate_speed.ps1', (req, res) => {
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', 'attachment; filename="validate_speed.ps1"');
+    res.sendFile(path.join(__dirname, 'validate_speed.ps1'));
+});
+
 // API para obter informações do servidor
 app.get('/api/server-info', (req, res) => {
     res.json(getServerIPs());

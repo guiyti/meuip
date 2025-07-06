@@ -1447,19 +1447,29 @@
         
         function resetUI() {
             // Reset results
-            document.getElementById('download-result').textContent = '-- Mbps';
-            document.getElementById('upload-result').textContent = '-- Mbps';
-            document.getElementById('latency-result').textContent = '-- ms';
+            document.getElementById('download-result').textContent = '';
+            document.getElementById('upload-result').textContent = '';
+            document.getElementById('latency-result').textContent = '';
             
             // Reset live values
-            document.getElementById('download-live').textContent = 'aguardando...';
-            document.getElementById('upload-live').textContent = 'aguardando...';
-            document.getElementById('latency-live').textContent = 'aguardando...';
+            document.getElementById('download-live').textContent = '';
+            document.getElementById('upload-live').textContent = '';
+            document.getElementById('latency-live').textContent = '';
+            
+            // Garantir que elementos live estão visíveis
+            document.getElementById('download-live').style.display = 'inline';
+            document.getElementById('upload-live').style.display = 'inline';
+            document.getElementById('latency-live').style.display = 'inline';
+            
+            // Reset results display
+            document.getElementById('download-result').style.display = 'none';
+            document.getElementById('upload-result').style.display = 'none';
+            document.getElementById('latency-result').style.display = 'none';
             
             // Remove animation classes
-            document.getElementById('download-result').classList.remove('final', 'rolling');
-            document.getElementById('upload-result').classList.remove('final', 'rolling');
-            document.getElementById('latency-result').classList.remove('final', 'rolling');
+            document.getElementById('download-result').classList.remove('final', 'rolling', 'finalPulse');
+            document.getElementById('upload-result').classList.remove('final', 'rolling', 'finalPulse');
+            document.getElementById('latency-result').classList.remove('final', 'rolling', 'finalPulse');
             
             document.getElementById('download-live').classList.remove('updating');
             document.getElementById('upload-live').classList.remove('updating');
@@ -1470,6 +1480,9 @@
             resetChart(downloadChart);
             resetChart(uploadChart);
             resetChart(latencyChart);
+            
+            // Limpar histórico de valores
+            clearHistory();
         }
 
         function resetChart(chart) {
@@ -1478,11 +1491,216 @@
             chart.update('none');
         }
 
-        // Função para atualizar valores em tempo real com animação
-        function updateLiveValue(elementId, value, unit, isLatency = false) {
+        // Array para armazenar valores históricos para animação
+        const valueHistory = {
+            download: [],
+            upload: [],
+            latency: []
+        };
+
+        // Controle de animação contínua
+        const animationControl = {
+            download: { running: false, currentValue: 0, targetValue: 0, animationId: null },
+            upload: { running: false, currentValue: 0, targetValue: 0, animationId: null },
+            latency: { running: false, currentValue: 0, targetValue: 0, animationId: null }
+        };
+
+        // Função para limpar histórico
+        function clearHistory() {
+            valueHistory.download = [];
+            valueHistory.upload = [];
+            valueHistory.latency = [];
+            
+            // Parar todas as animações
+            Object.keys(animationControl).forEach(key => {
+                if (animationControl[key].animationId) {
+                    cancelAnimationFrame(animationControl[key].animationId);
+                }
+                animationControl[key].running = false;
+                animationControl[key].currentValue = 0;
+                animationControl[key].targetValue = 0;
+                animationControl[key].animationId = null;
+            });
+        }
+
+        // Função para iniciar o velocímetro contínuo no início do teste
+        function startSpeedometer(elementId, unit, isLatency = false) {
             const liveElement = document.getElementById(`${elementId}-live`);
+            const resultElement = document.getElementById(`${elementId}-result`);
             
             if (!liveElement) return;
+            
+            // Preparar interface
+            resultElement.textContent = '';
+            liveElement.textContent = '';
+            liveElement.style.display = 'inline';
+            
+            // Iniciar animação contínua desde o começo
+            animationControl[elementId].currentValue = 0;
+            animationControl[elementId].targetValue = 0;
+            animationControl[elementId].running = true;
+            startContinuousAnimation(elementId, unit, isLatency);
+            
+            // Log informativo
+            console.log(`🎯 ${elementId}: Velocímetro iniciado - convergindo para a média conforme amostras são coletadas`);
+        }
+
+        // Função para atualizar valores (calcula média em tempo real)
+        function updateLiveValue(elementId, value, unit, isLatency = false) {
+            // Adicionar valor ao histórico
+            valueHistory[elementId].push(value);
+            
+            // Calcular média atual das amostras coletadas
+            const currentHistory = valueHistory[elementId];
+            const currentAverage = currentHistory.reduce((sum, val) => sum + val, 0) / currentHistory.length;
+            
+            // Atualizar valor alvo para animação contínua (agora é a média)
+            if (animationControl[elementId]) {
+                animationControl[elementId].targetValue = currentAverage;
+            }
+            
+            // Log para debug
+            console.log(`📊 ${elementId}: Amostra ${currentHistory.length} = ${value.toFixed(isLatency ? 3 : 0)} ${unit}, Média atual = ${currentAverage.toFixed(isLatency ? 3 : 0)} ${unit}`);
+        }
+
+        // Função para animação contínua convergindo para a média
+        function startContinuousAnimation(elementId, unit, isLatency = false) {
+            const element = document.getElementById(`${elementId}-live`);
+            const control = animationControl[elementId];
+            
+            if (!element || !control.running) return;
+            
+            // Tempo contínuo para animação
+            const time = Date.now() * 0.001; // Tempo em segundos
+            const history = valueHistory[elementId];
+            
+            let finalValue;
+            
+            if (history.length === 0) {
+                // Sem dados ainda: movimento exploratório buscando valores
+                const searchSpeed = isLatency ? 0.8 : 1.5; // Velocidade de busca
+                const searchRange = isLatency ? 2 : 50; // Amplitude de busca
+                const oscillation1 = Math.sin(time * searchSpeed) * searchRange * 0.5;
+                const oscillation2 = Math.sin(time * searchSpeed * 1.3) * searchRange * 0.3;
+                const oscillation3 = Math.sin(time * searchSpeed * 0.7) * searchRange * 0.2;
+                
+                finalValue = Math.max(0, oscillation1 + oscillation2 + oscillation3);
+                
+            } else {
+                // Com dados: convergência suave para a média atual
+                
+                // Valor alvo é a média atual (calculada em updateLiveValue)
+                const targetValue = control.targetValue;
+                
+                // Velocidade de convergência baseada no número de amostras
+                // Mais amostras = convergência mais rápida (média mais estável)
+                const samplesCount = history.length;
+                const convergenceSpeed = Math.min(0.02 + (samplesCount * 0.001), 0.08);
+                
+                // Interpolação suave em direção à média
+                const difference = targetValue - control.currentValue;
+                control.currentValue += difference * convergenceSpeed;
+                
+                // Calcular oscilações baseadas na variação das amostras
+                const variation = history.length > 1 ? 
+                    Math.abs(Math.max(...history) - Math.min(...history)) : 
+                    targetValue * 0.1;
+                
+                // Oscilações diminuem conforme mais amostras são coletadas
+                const oscillationScale = Math.max(0.1, 1 - (samplesCount * 0.05));
+                const oscillationRange = Math.min(variation * 0.05, targetValue * 0.03) * oscillationScale;
+                
+                // Oscilações suaves representando incerteza
+                const wave1 = Math.sin(time * 1.2) * oscillationRange * 0.6;
+                const wave2 = Math.sin(time * 1.8) * oscillationRange * 0.4;
+                
+                // Valor final = convergência + oscilações pequenas
+                finalValue = control.currentValue + wave1 + wave2;
+                
+                // Garantir que não seja negativo
+                finalValue = Math.max(0, finalValue);
+            }
+            
+            // Formatar e exibir valor
+            let displayValue;
+            if (isLatency) {
+                displayValue = `${finalValue.toFixed(3)} ${unit}`;
+            } else {
+                displayValue = `${Math.round(finalValue)} ${unit}`;
+            }
+            
+            element.textContent = displayValue;
+            element.classList.add('updating');
+            
+            // Continuar animação
+            if (control.running) {
+                control.animationId = requestAnimationFrame(() => {
+                    startContinuousAnimation(elementId, unit, isLatency);
+                });
+            }
+        }
+
+        // Função para parar animação contínua IMEDIATAMENTE
+        function stopContinuousAnimation(elementId) {
+            const control = animationControl[elementId];
+            if (control) {
+                // Cancelar qualquer frame de animação pendente
+                if (control.animationId) {
+                    cancelAnimationFrame(control.animationId);
+                    control.animationId = null;
+                }
+                
+                // Parar completamente a animação
+                control.running = false;
+                control.currentValue = 0;
+                control.targetValue = 0;
+            }
+            
+            const element = document.getElementById(`${elementId}-live`);
+            if (element) {
+                element.classList.remove('updating');
+            }
+            
+            // Log para confirmar que a animação foi parada
+            console.log(`🛑 Animação contínua parada para ${elementId}`);
+        }
+
+        // Função para definir resultado final com parada imediata e exibição da média
+        function setFinalResult(elementId, value, unit, isLatency = false) {
+            const resultElement = document.getElementById(`${elementId}-result`);
+            const liveElement = document.getElementById(`${elementId}-live`);
+            
+            if (!resultElement) return;
+            
+            // PARAR IMEDIATAMENTE toda animação contínua
+            stopContinuousAnimation(elementId);
+            
+            // Garantir que o controle de animação está completamente parado
+            const control = animationControl[elementId];
+            if (control) {
+                control.running = false;
+                control.currentValue = 0;
+                control.targetValue = 0;
+                if (control.animationId) {
+                    cancelAnimationFrame(control.animationId);
+                    control.animationId = null;
+                }
+            }
+            
+            // Log final mostrando o comportamento do velocímetro
+            const samplesCount = valueHistory[elementId].length;
+            console.log(`🎯 ${elementId} finalizado: ${samplesCount} amostras coletadas, média final = ${value.toFixed(isLatency ? 3 : 0)} ${unit}`);
+            
+            // Mostrar IMEDIATAMENTE a média final (sem animação prévia)
+            completeFinalResult(elementId, value, unit, isLatency);
+        }
+
+        // Função removida - não é mais necessária pois agora mostramos o resultado final imediatamente
+
+        // Função para completar o resultado final
+        function completeFinalResult(elementId, value, unit, isLatency = false) {
+            const resultElement = document.getElementById(`${elementId}-result`);
+            const liveElement = document.getElementById(`${elementId}-live`);
             
             // Formatar valor baseado no tipo
             let displayValue;
@@ -1492,51 +1710,28 @@
                 displayValue = `${Math.round(value)} ${unit}`;
             }
             
-            // Aplicar animação de atualização
-            liveElement.classList.add('updating');
-            liveElement.textContent = displayValue;
+            // Garantir que a animação contínua pare completamente
+            stopContinuousAnimation(elementId);
+            
+            // Ocultar elemento live IMEDIATAMENTE
+            if (liveElement) {
+                liveElement.style.display = 'none';
+                liveElement.classList.remove('updating');
+                liveElement.textContent = ''; // Limpar conteúdo
+            }
+            
+            // Mostrar resultado final IMEDIATAMENTE
+            resultElement.textContent = displayValue;
+            resultElement.style.display = 'block';
+            resultElement.classList.add('finalPulse');
+            
+            // Log para confirmar que a média foi calculada e exibida
+            console.log(`📊 Resultado final do ${elementId}: ${displayValue} (média final de ${valueHistory[elementId].length} amostras)`);
             
             // Remover classe de animação após transição
             setTimeout(() => {
-                liveElement.classList.remove('updating');
-            }, 400);
-        }
-
-        // Função para definir resultado final com animação
-        function setFinalResult(elementId, value, unit, isLatency = false) {
-            const resultElement = document.getElementById(`${elementId}-result`);
-            const liveElement = document.getElementById(`${elementId}-live`);
-            
-            if (!resultElement) return;
-            
-            // Formatar valor final
-            let displayValue;
-            if (isLatency) {
-                displayValue = `${value.toFixed(3)} ${unit}`;
-            } else {
-                displayValue = `${Math.round(value)} ${unit}`;
-            }
-            
-            // Animação de "rolling" para o resultado final
-            resultElement.classList.add('rolling');
-            resultElement.textContent = displayValue;
-            
-            // Ocultar valor ao vivo suavemente
-            if (liveElement) {
-                liveElement.style.opacity = '0.3';
-                liveElement.textContent = 'finalizado';
-            }
-            
-            // Aplicar animação final após rolling
-            setTimeout(() => {
-                resultElement.classList.remove('rolling');
-                resultElement.classList.add('final');
-                
-                // Remover animação final após completar
-                setTimeout(() => {
-                    resultElement.classList.remove('final');
-                }, 800);
-            }, 500);
+                resultElement.classList.remove('finalPulse');
+            }, 600);
         }
 
         async function runTest(testName, testFunction) {
@@ -1553,6 +1748,9 @@
 
         // --- Test Implementations ---
         async function runDownloadTest() {
+            // Iniciar velocímetro contínuo
+            startSpeedometer('download', 'Mbps', false);
+            
             const dataPoints = 12;
             const downloadData = [];
             const rawData = []; // Para análise estatística
@@ -1600,6 +1798,9 @@
         }
 
         async function runUploadTest() {
+            // Iniciar velocímetro contínuo
+            startSpeedometer('upload', 'Mbps', false);
+            
             const dataPoints = 12;
             const uploadData = [];
             const rawData = []; // Para análise estatística
@@ -1646,6 +1847,9 @@
         }
 
         async function runLatencyTest() {
+            // Iniciar velocímetro contínuo
+            startSpeedometer('latency', 'ms', true);
+            
             const dataPoints = 12; // 12 pings individuais
             const intervalMs = 500; // Delay entre pings
             const latencyData = [];

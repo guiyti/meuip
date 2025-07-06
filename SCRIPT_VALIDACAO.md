@@ -146,13 +146,43 @@ bash -x validate_speed.sh
 
 **Nota**: O script se auto-deleta após a execução para garantir que sempre seja baixada a versão mais atualizada.
 
+## 🪟 Suporte para Windows
+
+### Script PowerShell Nativo
+```powershell
+# Baixar e executar script PowerShell
+curl -O http://meuip.ufabc.int.br/validate_speed.ps1
+powershell -ExecutionPolicy Bypass -File validate_speed.ps1
+```
+
+### Comandos Individuais Windows
+```cmd
+# Download (CMD/PowerShell)
+curl -s -o nul -w "%{speed_download}" http://meuip.ufabc.int.br/testfile
+
+# Upload (CMD com arquivo temporário)
+fsutil file createnew temp1mb.dat 1048576 && curl -X POST -T temp1mb.dat -w "%{speed_upload}" http://meuip.ufabc.int.br/upload && del temp1mb.dat
+
+# Latência (CMD/PowerShell)
+ping -n 12 meuip.ufabc.int.br
+```
+
+### Alternativas para Windows
+- **WSL (Recomendado)**: `wsl bash validate_speed.sh`
+- **Git Bash**: `bash validate_speed.sh`
+- **PowerShell Core**: Script nativo `.ps1`
+
+### Requisitos Windows
+- **Windows 10/11**: curl disponível nativamente
+- **Windows 7/8**: Instalar curl do [site oficial](https://curl.se/windows/)
+- **PowerShell**: 5.1+ (pré-instalado no Windows 10/11)
+
 ## ⚠️ Limitações
 
 - **IPv6**: Funciona apenas com IPv4
 - **Firewall**: Pode ser bloqueado por firewalls corporativos
 - **Proxy**: Não funciona através de proxies HTTP
-- **Windows**: Requer WSL ou Git Bash
-- **Compatibilidade**: Testado em Linux e macOS
+- **Compatibilidade**: Testado em Linux, macOS e Windows 10/11
 
 ## 🆘 Solução de Problemas
 
@@ -183,7 +213,39 @@ brew install bc
 - Problemas de rede intermitentes
 - Servidor sobrecarregado
 - Firewall bloqueando conexões
-- **Nota**: Com retry automático, testes falharam apenas se todas as 3 tentativas falharam
+- **Nota**: Com retry automático, testes falharam apenas se todas as 10 tentativas falharam
+
+### Problemas específicos do Windows
+
+#### Script PowerShell não executa
+```powershell
+# Habilitar execução de scripts
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# Ou executar com bypass
+powershell -ExecutionPolicy Bypass -File validate_speed.ps1
+```
+
+#### Comando curl não encontrado (Windows 7/8)
+```cmd
+# Verificar se curl está disponível
+curl --version
+
+# Se não estiver, baixar do site oficial
+# https://curl.se/windows/
+```
+
+#### Permissões para criar arquivo temporário
+```powershell
+# Executar PowerShell como administrador
+# Ou verificar permissões na pasta temp
+$env:TEMP
+```
+
+#### Antivírus bloqueando script
+- Adicionar exceção para o script
+- Executar temporariamente sem antivírus
+- Usar Windows Defender apenas
 
 ## 📞 Suporte
 
